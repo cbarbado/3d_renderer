@@ -95,6 +95,7 @@ var funnels = new Geometry3D(funnelsData);
 var beads = new Geometry3D(beadsData);
 var cone = new Geometry3D(coneData);
 var sphere = new Geometry3D(sphereData);
+var toroid = new Geometry3D(toroidData);
 
 function prepareCanvas()
 {
@@ -122,6 +123,7 @@ function prepareCanvas()
 	beads.normalize(canvasHeight*0.5);
 	cone.normalize(canvasHeight*0.5);
 	sphere.normalize(canvasHeight*0.5);
+	toroid.normalize(canvasHeight*0.5);
 
 	$('#canvas').mousedown(function(e)
 	{
@@ -167,6 +169,11 @@ function drawCone() {
 function drawSphere() {
 	clearCanvas();
 	sphere.drawWireframe(context)
+}
+
+function drawToroid() {
+	clearCanvas();
+	toroid.drawWireframe(context)
 }
 
 function clearCanvas()
