@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HTML5 Canvas</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+    <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+    <script type="text/javascript" src="data/pyramid_wdt.json"></script>
+    <script type="text/javascript" src="data/cube_wdt.json"></script>
+    <script type="text/javascript" src="data/chesspawn_wdt.json"></script>
+    <script type="text/javascript" src="data/cylinder_wdt.json"></script>
+    <script type="text/javascript" src="data/funnels_wdt.json"></script>
+    <script type="text/javascript" src="data/beads_wdt.json"></script>
+    <script type="text/javascript" src="data/cone_wdt.json"></script>
+    <script type="text/javascript" src="data/sphere_wdt.json"></script>
+    <script type="text/javascript" src="3DViewer.js"></script>
+  </head>
+  <body>
+	  <button id="clearCanvasSimple" type="button" onclick="clearCanvas()">Reset</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawCube()">Cube</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawPyramid()">Pyramid</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawPawn()">Pawn</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawCylinder()">Cylinder</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawFunnels()">Funnels</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawBeads()">Beads</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawCone()">Cone</button>  	
+    <button id="clearCanvasSimple" type="button" onclick="drawSphere()">Sphere</button>  	
+
+    <div style="border: thin solid black; background-color: black; width: 800px; height: 600px;" id="canvasDiv"></div>
+
+    <script type="text/javascript"> $(document).ready(function() { prepareCanvas(); });</script>
+  </body>
+</html>
