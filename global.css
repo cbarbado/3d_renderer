@@ -24,7 +24,11 @@
     gap: 10px;
 }
 
+.divider {
+    margin-top: 10px;
+}
+
 .btn {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     width: 100%;
 }
