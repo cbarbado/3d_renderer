@@ -29,19 +29,18 @@
           </div>
         </nav>
         <div class="item-b">
-          <button type="button" class="waves-effect waves-light btn" onclick="drawCube()">Cube</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawPyramid()">Pyramid</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawPawn()">Pawn</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawCylinder()">Cylinder</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawFunnels()">Funnels</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawBeads()">Beads</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawCone()">Cone</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawSphere()">Sphere</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="drawToroid()">Toroid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(0)">Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(1)">Pyramid</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(2)">Pawn</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(3)">Cylinder</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(4)">Funnels</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(5)">Beads</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(6)">Cone</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(7)">Sphere</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(8)">Toroid</button>  
           <div class="divider"></div>
           <div class="section">
-            <button type="button" class="waves-effect waves-light btn red accent-2" onclick="clearCanvas()">Clear</button>  	
-            <button type="button" class="waves-effect waves-light btn disabled" onclick="rotate()">Rotate</button>  	
+            <button type="button" class="waves-effect waves-light btn red accent-2" onclick="setGeometry(null)">Clear</button>  	
           </div>
         </div>
         <div class="item-c" style="background-color: black; width: 600px; height: 600px;" id="canvasDiv">

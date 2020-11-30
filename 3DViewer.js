@@ -15,11 +15,27 @@ class Point3D {
 
 class Geometry3D {
 	constructor(geometryData) {
-		var tmp = JSON.parse(geometryData);
-		this.vertices = tmp.vertices;
-		this.faces    = tmp.faces;
+		var tmp             = JSON.parse(geometryData);
+		this.vertices       = tmp.vertices;
+		this.faces          = tmp.faces;
+		this.transformedVertices = this.vertices;
+		this.transformRotate    = 0;
+		this.transformScale     = 1;
 	}
 
+	transform(s = this.transformScale, r = this.transformRotate) {
+		r = (r / 180) * 3.1415;
+		this.transformedVertices = new Array();
+		this.vertices.forEach((v) => {
+			var tmp = new Array();
+			tmp.push((v[0]*Math.cos(r)-v[1]*Math.sin(r))*s);
+			tmp.push((v[0]*Math.sin(r)+v[1]*Math.cos(r))*s);
+			tmp.push(v[2]*s);
+			this.transformedVertices.push(tmp);
+		});
+	}
+
+	/* TODO: review this method */
 	normalize(sizeLimit) {
 		var maxSize = this.vertices[0][0];
 		var minSize = this.vertices[0][0];
@@ -40,16 +56,10 @@ class Geometry3D {
 		return this;
 	}
 
-	drawVertices(context) {
-		this.vertices.forEach((v) => {
-			// context.fillRect(v[0], v[1],3,3)
-			context.fillRect(v[0]*0.707 + v[1]*-0.707 + (canvasWidth / 2), v[0]*0.409+v[1]*0.409+v[2]*0.816 + (canvasHeight / 2),3,3)
-		});
-	}
-
+	/* TODO: subtract 1 from the vertices indexes in the data files */
 	drawWireframe(context) {
 		var coords = new Array();
-		this.vertices.forEach((v) => {
+		this.transformedVertices.forEach((v) => {
 			var tmp = new Array;
 			tmp.push(v[0]*0.707 + v[1]*-0.707 + (canvasWidth / 2));
 			tmp.push(v[0]*0.409+v[1]*0.409+v[2]*0.816 + (canvasHeight / 2));
@@ -70,15 +80,19 @@ class Geometry3D {
 
 var canvas;
 var context;
-var cube    = new Geometry3D(cubeData);
-var pyramid = new Geometry3D(pyramidData);
-var chesspawn = new Geometry3D(chesspawnData);
-var cylinder = new Geometry3D(cylinderData);
-var funnels = new Geometry3D(funnelsData);
-var beads = new Geometry3D(beadsData);
-var cone = new Geometry3D(coneData);
-var sphere = new Geometry3D(sphereData);
-var toroid = new Geometry3D(toroidData);
+var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData];
+var geometries      = new Array();
+var currentGeometry = null;
+
+var angle = 0;
+function animationLoop() {
+	if(currentGeometry == null) return;
+
+	currentGeometry.transform(1, angle);
+	clearCanvas();
+	currentGeometry.drawWireframe(context);
+	angle = (angle + 1) % 360;
+}
 
 function prepareCanvas()
 {
@@ -98,65 +112,26 @@ function prepareCanvas()
 	context.fillStyle   = "#00ff00";
     context.lineWidth   = 1;
 
-	cube.normalize(canvasHeight*0.5);
-	pyramid.normalize(canvasHeight*0.5);
-	chesspawn.normalize(canvasHeight*0.5);
-	cylinder.normalize(canvasHeight*0.5);
-	funnels.normalize(canvasHeight*0.5);
-	beads.normalize(canvasHeight*0.5);
-	cone.normalize(canvasHeight*0.5);
-	sphere.normalize(canvasHeight*0.5);
-	toroid.normalize(canvasHeight*0.5);
+	geometriesData.forEach((gd) => {
+		geometries.push(new Geometry3D(gd).normalize(canvasHeight*0.5))
+	});
 
 	$('#canvas').mousedown(function(e)
 	{
 		// redraw();
-  	});
+	});
+	  
+	setInterval(animationLoop,20);
 }
 
-function drawPawn() {
-	clearCanvas();
-	chesspawn.drawWireframe(context)
-}
-
-function drawCube() {
-	clearCanvas();
-	cube.drawWireframe(context)
-}
-
-function drawPyramid() {
-	clearCanvas();
-	pyramid.drawWireframe(context)
-}
-
-function drawCylinder() {
-	clearCanvas();
-	cylinder.drawWireframe(context)
-}
-
-function drawFunnels() {
-	clearCanvas();
-	funnels.drawWireframe(context)
-}
-
-function drawBeads() {
-	clearCanvas();
-	beads.drawWireframe(context)
-}
-
-function drawCone() {
-	clearCanvas();
-	cone.drawWireframe(context)
-}
-
-function drawSphere() {
-	clearCanvas();
-	sphere.drawWireframe(context)
-}
-
-function drawToroid() {
-	clearCanvas();
-	toroid.drawWireframe(context)
+function setGeometry(g) {
+	if(g == null) {
+		currentGeometry = null;	
+		clearCanvas();
+	}
+	else {
+		currentGeometry = geometries[g];
+	}
 }
 
 function clearCanvas()
@@ -164,7 +139,9 @@ function clearCanvas()
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 }
 
+/*
 function redraw()
 {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 }
+*/
