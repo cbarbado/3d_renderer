@@ -19,17 +19,16 @@
     <script type="text/javascript" src="3DViewer.js"></script>
   </head>
   <body>
-      <div class="container">
-        <nav>
-          <div class="nav-wrapper" style="margin-left: 15px">
-              <span class="left brand-logo">
-                  3D Viewer
-              </span>
-          </div>
-      </nav>
-      <br/>
+    <div class="container">
       <div class="content">
-        <div>
+        <nav class="item-a">
+          <div class="nav-wrapper" style="margin-left: 15px">
+            <span class="left brand-logo">
+              3D Viewer
+            </span>
+          </div>
+        </nav>
+        <div class="item-b">
           <button type="button" class="waves-effect waves-light btn" onclick="drawCube()">Cube</button>  	
           <button type="button" class="waves-effect waves-light btn" onclick="drawPyramid()">Pyramid</button>  	
           <button type="button" class="waves-effect waves-light btn" onclick="drawPawn()">Pawn</button>  	
@@ -42,16 +41,15 @@
           <button type="button" class="waves-effect waves-light btn" onclick="clearCanvas()">Clear</button>  	
           <button type="button" class="waves-effect waves-light btn disabled" onclick="rotate()">Rotate</button>  	
         </div>
-        <div style="border: thin solid black; background-color: black; width: 600px; height: 600px;" id="canvasDiv">
+        <div class="item-c" style="background-color: black; width: 600px; height: 600px;" id="canvasDiv">
         </div>
-      </div>
-      <br/>
-      <footer class="page-footer z-depth-1" style="padding: 0px">
-        <div class="footer-copyright">
+        <footer class="page-footer z-depth-1 item-d" style="padding: 0px">
+          <div class="footer-copyright">
             <div style="margin-left: 15px">© 2020 Cesar Barbado</div>
-        </div>                
-      </footer>
-  </div>
-    <script type="text/javascript"> $(document).ready(function() { prepareCanvas(); });</script>
+          </div>                
+        </footer>
+      </div>
+      <script type="text/javascript"> $(document).ready(function() { prepareCanvas(); });</script>
+    </div>    
   </body>
 </html>

@@ -1,7 +1,26 @@
+.item-a {
+    grid-area: header;
+  }
+.item-b {
+    grid-area: sidebar;
+}
+.item-c {
+    grid-area: main;
+}
+.item-d {
+    grid-area: footer;
+}
+
 .content {
-    align-content: center;
+    margin: 10px 0px 10px;
     display: grid;
-    grid-template-columns: 2fr 8fr;
+    justify-content: center;
+    /* grid-template-columns: 1fr 5fr; */
+    grid-template-columns: 200px 600px;
+    grid-template-areas:
+        "header header"
+        "sidebar main"
+        "footer footer";
     gap: 10px;
 }
 
