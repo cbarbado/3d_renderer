@@ -1,3 +1,6 @@
+const canvasWidth  = 600;
+const canvasHeight = 600;
+
 class Point3D {
 	constructor(x,y,z) {
 		this.x = x;
@@ -40,25 +43,16 @@ class Geometry3D {
 	drawVertices(context) {
 		this.vertices.forEach((v) => {
 			// context.fillRect(v[0], v[1],3,3)
-			context.fillRect(v[0]*0.707 + v[1]*-0.707 + 400, v[0]*0.409+v[1]*0.409+v[2]*0.816 + 300,3,3)
+			context.fillRect(v[0]*0.707 + v[1]*-0.707 + (canvasWidth / 2), v[0]*0.409+v[1]*0.409+v[2]*0.816 + (canvasHeight / 2),3,3)
 		});
-		/*
-		context.beginPath();
-		context.moveTo(this.vertexes[0].x,this.vertexes[0].y);
-		context.lineTo(this.vertexes[1].x,this.vertexes[1].y);
-		context.lineTo(this.vertexes[2].x,this.vertexes[2].y);
-		context.lineTo(this.vertexes[0].x,this.vertexes[0].y);
-		context.closePath();
-		context.stroke();
-		*/
 	}
 
 	drawWireframe(context) {
 		var coords = new Array();
 		this.vertices.forEach((v) => {
 			var tmp = new Array;
-			tmp.push(v[0]*0.707 + v[1]*-0.707 + 400);
-			tmp.push(v[0]*0.409+v[1]*0.409+v[2]*0.816 + 300);
+			tmp.push(v[0]*0.707 + v[1]*-0.707 + (canvasWidth / 2));
+			tmp.push(v[0]*0.409+v[1]*0.409+v[2]*0.816 + (canvasHeight / 2));
 			coords.push(tmp);
 		});
 		this.faces.forEach((f) => {
@@ -71,22 +65,11 @@ class Geometry3D {
 			context.closePath();
 			context.stroke();
 		});
-		/*
-		context.beginPath();
-		context.moveTo(this.vertexes[0].x,this.vertexes[0].y);
-		context.lineTo(this.vertexes[1].x,this.vertexes[1].y);
-		context.lineTo(this.vertexes[2].x,this.vertexes[2].y);
-		context.lineTo(this.vertexes[0].x,this.vertexes[0].y);
-		context.closePath();
-		context.stroke();
-		*/
 	}
 }
 
 var canvas;
 var context;
-const canvasWidth  = 800;
-const canvasHeight = 600;
 var cube    = new Geometry3D(cubeData);
 var pyramid = new Geometry3D(pyramidData);
 var chesspawn = new Geometry3D(chesspawnData);

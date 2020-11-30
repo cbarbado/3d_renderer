@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>HTML5 Canvas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="./global.css">
+    <title>3D Viewer</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
     <script type="text/javascript" src="data/pyramid_wdt.json"></script>
@@ -16,19 +19,39 @@
     <script type="text/javascript" src="3DViewer.js"></script>
   </head>
   <body>
-	  <button id="clearCanvasSimple" type="button" onclick="clearCanvas()">Reset</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawCube()">Cube</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawPyramid()">Pyramid</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawPawn()">Pawn</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawCylinder()">Cylinder</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawFunnels()">Funnels</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawBeads()">Beads</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawCone()">Cone</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawSphere()">Sphere</button>  	
-    <button id="clearCanvasSimple" type="button" onclick="drawToroid()">Toroid</button>  	
-
-    <div style="border: thin solid black; background-color: black; width: 800px; height: 600px;" id="canvasDiv"></div>
-
+      <div class="container">
+        <nav>
+          <div class="nav-wrapper" style="margin-left: 15px">
+              <span class="left brand-logo">
+                  3D Viewer
+              </span>
+          </div>
+      </nav>
+      <br/>
+      <div class="content">
+        <div>
+          <button type="button" class="waves-effect waves-light btn" onclick="drawCube()">Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawPyramid()">Pyramid</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawPawn()">Pawn</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawCylinder()">Cylinder</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawFunnels()">Funnels</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawBeads()">Beads</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawCone()">Cone</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawSphere()">Sphere</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="drawToroid()">Toroid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="clearCanvas()">Clear</button>  	
+          <button type="button" class="waves-effect waves-light btn disabled" onclick="rotate()">Rotate</button>  	
+        </div>
+        <div style="border: thin solid black; background-color: black; width: 600px; height: 600px;" id="canvasDiv">
+        </div>
+      </div>
+      <br/>
+      <footer class="page-footer z-depth-1" style="padding: 0px">
+        <div class="footer-copyright">
+            <div style="margin-left: 15px">© 2020 Cesar Barbado</div>
+        </div>                
+      </footer>
+  </div>
     <script type="text/javascript"> $(document).ready(function() { prepareCanvas(); });</script>
   </body>
 </html>

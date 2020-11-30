@@ -1,0 +1,11 @@
+.content {
+    align-content: center;
+    display: grid;
+    grid-template-columns: 2fr 8fr;
+    gap: 10px;
+}
+
+.btn {
+    margin-bottom: 10px;
+    width: 100%;
+}
