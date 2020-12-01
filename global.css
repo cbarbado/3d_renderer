@@ -15,12 +15,12 @@
     margin: 10px 0px 10px;
     display: grid;
     justify-content: center;
-    /* grid-template-columns: 1fr 5fr; */
-    grid-template-columns: 200px 600px;
+    grid-template-columns: 1fr 2fr 5fr 1fr;
+    /* grid-template-columns: 200px 600px; */
     grid-template-areas:
-        "header header"
-        "sidebar main"
-        "footer footer";
+        "header header header header"
+        ". sidebar main ."
+        "footer footer footer footer";
     gap: 10px;
 }
 
