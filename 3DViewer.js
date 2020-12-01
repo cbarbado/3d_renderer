@@ -80,7 +80,7 @@ class Geometry3D {
 
 var canvas;
 var context;
-var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData];
+var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData, lgbeadsData, mechpartData, rocketData];
 var geometries      = new Array();
 var currentGeometry = null;
 
