@@ -1,4 +1,4 @@
-# 3d_viewer
+# 3D Viewer
 
 This is a very simple demo code to test and practice my JS skills.
 The challenge was to draw 3D wireframes on a canvas with the minimum lines of code possible ( _it ended up with 100 lines!_ ).
