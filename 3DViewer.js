@@ -1,44 +1,58 @@
-class Geometry3D {
-	constructor(geometryData) {
-		var tmp             = JSON.parse(geometryData);
-		this.vertices       = tmp.vertices;
-		this.faces          = tmp.faces;
-		this.transformedVertices = this.vertices;
-		this.transformRotate    = 0;
-		this.transformScale     = 1;
+class Point {
+	constructor(x = 0.0, y = 0.0, z = 0.0) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 
-	transform(s = this.transformScale, r = this.transformRotate) {
+	subtract(p) {
+		return new Point(this.x - p.x, this.y - p.y, this.z - p.z);
+	}
+}
+
+class Geometry3D {
+	constructor(geometryData) {
+		var tmp                 = JSON.parse(geometryData);
+		this.vertices           = tmp.vertices;
+		this.faces              = tmp.faces;
+		this.transformRotate    = 0;
+		this.transformScale     = 1;
+		this.transformedVertices = new Array();
+	}
+
+	transformVertices(s = this.transformScale, r = this.transformRotate) {
 		r = (r / 180) * 3.1415;
 		this.transformedVertices = new Array();
 		this.vertices.forEach((v) => {
-			var tmp = new Array();
-			tmp.push((v[0]*Math.cos(r)-v[1]*Math.sin(r))*s);
-			tmp.push((v[0]*Math.sin(r)+v[1]*Math.cos(r))*s);
-			tmp.push(v[2]*s);
-			this.transformedVertices.push(tmp);
+			this.transformedVertices.push(new Point((v[0]*Math.cos(r)-v[1]*Math.sin(r))*s, (v[0]*Math.sin(r)+v[1]*Math.cos(r))*s, v[2]*s));
 		});
+	}
+
+	isFaceVisible(face) {
+		var v1 = this.transformedVertices[face[0]-1].subtract(this.transformedVertices[face[1]-1]);
+		var v2 = this.transformedVertices[face[2]-1].subtract(this.transformedVertices[face[1]-1]);
+
+		return (/* vCrossX */ (v1.y * v2.z - v1.z * v2.y) + /* vCrossY */ (v1.z * v2.x - v1.x * v2.z) - /* vCrossZ */ (v1.x * v2.y - v1.y * v2.x) > 0);
 	}
 
 	/* TODO: convert the data files from multiple edges polygons to tryangles meshes */
 	/* TODO: subtract 1 from the vertices indexes in the data files */
-	drawWireframe(context, offsetX = 0, offsetY = 0) {
+	drawWireframe(context, offsetX = 0, offsetY = 0, culling = false) {
 		var coords = new Array();
 		this.transformedVertices.forEach((v) => {
-			var tmp = new Array;
-			tmp.push(v[0]*0.707 + v[1]*-0.707 + offsetX);
-			tmp.push(v[0]*0.409+v[1]*0.409+v[2]*0.816 + offsetY);
-			coords.push(tmp);
+			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 + v.z * 0.816 + offsetY, 0.0));
 		});
 		this.faces.forEach((f) => {
-			context.beginPath();
-			context.moveTo(coords[f[0]-1][0],coords[f[0]-1][1]);
-			context.lineTo(coords[f[1]-1][0],coords[f[1]-1][1]);
-			context.lineTo(coords[f[2]-1][0],coords[f[2]-1][1]);
-			context.lineTo(coords[f[3]-1][0],coords[f[3]-1][1]);
-			context.lineTo(coords[f[0]-1][0],coords[f[0]-1][1]);
-			context.closePath();
-			context.stroke();
+			if(!culling || this.isFaceVisible(f)) {
+				context.beginPath();
+				context.moveTo(coords[f[0]-1].x,coords[f[0]-1].y);
+				context.lineTo(coords[f[1]-1].x,coords[f[1]-1].y);
+				context.lineTo(coords[f[2]-1].x,coords[f[2]-1].y);
+				context.lineTo(coords[f[3]-1].x,coords[f[3]-1].y);
+				context.lineTo(coords[f[0]-1].x,coords[f[0]-1].y);
+				context.closePath();
+				context.stroke();
+			}
 		});
 	}
 }
@@ -50,14 +64,15 @@ var context;
 var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData, lgbeadsData, mechpartData, rocketData];
 var geometries      = new Array();
 var currentGeometry = null;
+var culling = false;
 
 var angle = 0;
 function animationLoop() {
 	if(currentGeometry == null) return;
 
-	currentGeometry.transform(-0.0075, angle); /* TODO: normalize objetcs size in data files to remove this arbitrary scale factor */
+	currentGeometry.transformVertices(-0.0075, angle); /* TODO: normalize objetcs size in data files to remove this arbitrary scale factor */
 	clearCanvas();
-	currentGeometry.drawWireframe(context, canvasWidth / 2, canvasHeight / 2);
+	currentGeometry.drawWireframe(context, canvasWidth / 2, canvasHeight / 2, culling);
 	angle = (angle + 1) % 360;
 }
 
@@ -82,6 +97,10 @@ function prepareCanvas()
 	});
 
 	setInterval(animationLoop,20);
+}
+
+function toogleCulling() {
+	culling = !culling;
 }
 
 function setGeometry(g) {
