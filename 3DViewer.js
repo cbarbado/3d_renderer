@@ -51,10 +51,13 @@ class Geometry3D {
 
 	/* TODO: convert the data files from multiple edges polygons to tryangles meshes */
 	/* TODO: subtract 1 from the vertices indexes in the data files */
-	drawWireframe(context, offsetX = 0, offsetY = 0, flagShading = false) {
+	render(context, width = 0, height = 0, flagShading = false) {
 		var coords = new Array();
+		var offsetX = width / 2;
+		var offsetY = height / 2;
 		this.transformedVertices.forEach((v) => {
-			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 + v.z * 0.816 + offsetY, 0.0));
+			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
+			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 + v.z * 0.816 + offsetY, v.z));
 		});
 		this.faces.forEach((f) => {
 			var faceLightening = this.calcFacelightening(f);
@@ -77,7 +80,7 @@ class Geometry3D {
 					context.fill();
 				}
 				else {
-					faceLightening = "#00ff00";
+					faceLightening = "#00cc00";
 				}
 
 				context.strokeStyle = faceLightening;
@@ -102,7 +105,7 @@ function animationLoop() {
 
 	currentGeometry.transformVertices(-0.0075, angle); /* TODO: normalize objetcs size in data files to remove this arbitrary scale factor */
 	clearCanvas();
-	currentGeometry.drawWireframe(context, canvasWidth / 2, canvasHeight / 2, flagShading);
+	currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
 	angle = (angle + 1) % 360;
 }
 
@@ -119,8 +122,6 @@ function prepareCanvas()
 	}
 
 	context = document.getElementById('canvas').getContext("2d");
-
-	context.strokeStyle = "#00ff00";
 
 	geometriesData.forEach((gd) => {
 		geometries.push(new Geometry3D(gd));
