@@ -63,32 +63,121 @@ class Geometry3D {
 			var faceLightening = this.calcFacelightening(f);
 
 			if(!flagShading || faceLightening > 0) {
-				context.beginPath();
-				context.moveTo(coords[f[0]-1].x,coords[f[0]-1].y);
-				context.lineTo(coords[f[1]-1].x,coords[f[1]-1].y);
-				context.lineTo(coords[f[2]-1].x,coords[f[2]-1].y);
-				context.lineTo(coords[f[3]-1].x,coords[f[3]-1].y);
-				context.lineTo(coords[f[0]-1].x,coords[f[0]-1].y);
-				context.closePath();
-
 				if(flagShading) {
 					faceLightening = Math.floor(255 * faceLightening);
-					faceLightening = `rgb(${faceLightening}, ${faceLightening}, ${faceLightening})`;
 	
-					context.fillStyle = faceLightening;
-					// TODO: Implement my own polygon fill routine with ZBuffer
-					context.fill();
+					// TODO: Implement ZBuffer on the fill function
+					var v = new Array();
+					v.push(coords[f[0]-1]);
+					v.push(coords[f[1]-1]);
+					v.push(coords[f[2]-1]);
+					v.push(coords[f[3]-1]);
+					polyfill(v, faceLightening);
 				}
 				else {
-					faceLightening = "#00cc00";
+					context.beginPath();
+					context.moveTo(coords[f[0]-1].x,coords[f[0]-1].y);
+					context.lineTo(coords[f[1]-1].x,coords[f[1]-1].y);
+					context.lineTo(coords[f[2]-1].x,coords[f[2]-1].y);
+					context.lineTo(coords[f[3]-1].x,coords[f[3]-1].y);
+					context.lineTo(coords[f[0]-1].x,coords[f[0]-1].y);
+					context.closePath();
+					context.strokeStyle = "#00cc00";
+					context.stroke();
 				}
-
-				context.strokeStyle = faceLightening;
-				context.stroke();
 			}
 		});
+		if(flagShading) {
+			context.putImageData(canvasBuffer, 0, 0);
+		}
 	}
 }
+
+function setPixel (x,y,r=0,g=0,b=0,a=255) {
+    x = Math.round(x);
+    y = Math.round(y);
+
+	if((x < 0) || (y < 0) || (x >= canvasBuffer.width) || (y >= canvasBuffer.height)) {
+		return;
+	}
+
+	var offset = (y * canvasBuffer.width + x) * 4;
+	canvasBuffer.data[offset]   = r;
+	canvasBuffer.data[offset+1] = g;
+	canvasBuffer.data[offset+2] = b;
+	canvasBuffer.data[offset+3] = a;	
+}
+
+// BUG: the junction of the 2 triangles sometimes has a flaw that is not filled, probable related to rounding in the setPixel function
+async function polyfill(vertexes, color) // 3 or 4 vertexes only
+{
+	var top = 0;
+	var bot = 0;
+	var mid = 0;
+
+	for(var i = 1; i < 3; i++) {
+		if(vertexes[i].y < vertexes[top].y) {
+			top = i;
+		}
+		if(vertexes[i].y > vertexes[bot].y) {
+			bot = i;
+		}
+	}
+
+	while ((mid == top) || (mid == bot)) {
+		mid ++;
+	}
+
+  	/* TOP -> MID */
+  	var delta_x1 = vertexes[top].x - vertexes[bot].x;
+  	var delta_y1 = vertexes[top].y - vertexes[bot].y;
+  	var delta_x2 = vertexes[top].x - vertexes[mid].x;
+  	var delta_y2 = vertexes[top].y - vertexes[mid].y;
+  	var delta_x3 = vertexes[mid].x - vertexes[bot].x;
+  	var delta_y3 = vertexes[mid].y - vertexes[bot].y;
+
+    for (var y = vertexes[top].y; y <= vertexes[mid].y; y++) {
+    	var pos_x1 = vertexes[top].x + (delta_x1 * ((y-vertexes[top].y)/delta_y1));
+    	var pos_x2 = vertexes[mid].x + (delta_x2 * ((y-vertexes[mid].y)/delta_y2));
+
+	    if(pos_x2 > pos_x1) {
+	    	for(var x = pos_x1; x <= pos_x2; x++) {
+			    setPixel(x,y,color, color, color);
+	    	}
+	    }
+	    else {
+	    	for(var x = pos_x2; x <= pos_x1; x++) {
+			    setPixel(x,y,color,color,color);
+	    	}
+	    }
+    }
+
+    /* MID -> BOT */
+    for (var y = vertexes[mid].y; y <= vertexes[bot].y; y++) {
+    	var pos_x1 = vertexes[top].x + (delta_x1 * ((y-vertexes[top].y)/delta_y1));
+    	var pos_x2 = vertexes[mid].x + (delta_x3 * ((y-vertexes[mid].y)/delta_y3));
+
+	    if(pos_x2 > pos_x1) {
+	    	for(var x = pos_x1; x <= pos_x2; x++) {
+			    setPixel(x,y,color,color,color);
+	    	}
+	    }
+	    else {
+	    	for(var x = pos_x2; x <= pos_x1; x++) {
+			    setPixel(x,y,color,color,color);
+	    	}
+	    }
+    }
+
+	if(vertexes.length === 4) {
+		var v = new Array()
+		v[0] = vertexes[2];
+		v[1] = vertexes[3];
+		v[2] = vertexes[0];
+		polyfill(v, color);
+	}
+}
+
 
 const canvasWidth  = 600;
 const canvasHeight = 600;
@@ -98,6 +187,7 @@ var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funne
 var geometries      = new Array();
 var currentGeometry = null;
 var flagShading     = false;
+var canvasBuffer;
 
 var angle = 0;
 function animationLoop() {
@@ -106,6 +196,7 @@ function animationLoop() {
 	currentGeometry.transformVertices(-0.0075, angle); /* TODO: normalize objetcs size in data files to remove this arbitrary scale factor */
 	clearCanvas();
 	currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
+
 	angle = (angle + 1) % 360;
 }
 
@@ -122,6 +213,8 @@ function prepareCanvas()
 	}
 
 	context = document.getElementById('canvas').getContext("2d");
+
+	canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);
 
 	geometriesData.forEach((gd) => {
 		geometries.push(new Geometry3D(gd));
@@ -147,4 +240,5 @@ function setGeometry(g) {
 function clearCanvas()
 {
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
+	canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);	
 }
