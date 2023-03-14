@@ -5,7 +5,7 @@ class Point {
 		this.z = z;
 	}
 
-	getSubtract(p) {
+	getSubtraction(p) {
 		return new Point(this.x - p.x, this.y - p.y, this.z - p.z);
 	}
 
@@ -14,22 +14,44 @@ class Point {
 	}
 
 	normalize() {
-		var m = this.getModule();
-		this.x = this.x / m;
-		this.y = this.y / m;
-		this.z = this.z / m;
+		var inv_m = 1 / this.getModule();
+		this.x = this.x * inv_m;
+		this.y = this.y * inv_m;;
+		this.z = this.z * inv_m;;
 	}
 }
 
 class Geometry3D {
 	constructor(geometryData) {
-		var tmp                 = JSON.parse(geometryData);
-		this.vertices           = tmp.vertices;
-		this.faces              = tmp.faces;
+		this.vertices           = geometryData.vertices;
+		this.faces              = geometryData.faces;
 		this.transformRotate    = 0;
 		this.transformScale     = 1;
 		this.transformedVertices = new Array();
 	}
+
+	/* TEMPORARY CODE TO CONVERT FROM BOOK C FORMAT TO JAVASCRIPT JSON FORMAT */
+	/* DONE: subtract 1 from the vertices indexes in the data files */
+	/* DONE: remove headers from data files. they are not necessary in json format. */
+	/* DONE: scale down vertices (0.0075) */
+	/*
+	convert() {
+		var g = new Object();
+		g.vertices = new Array();
+		g.faces    = new Array();
+		this.vertices.forEach((v) => {
+			g.vertices.push(new Array(v[0] * 0.0075, v[1] * 0.0075, v[2] * 0.0075));
+		});
+		this.faces.forEach((f) => {
+			var tmp = new Array(f[0] - 1, f[1] - 1, f[2] - 1);
+			if(f.length > 3) {
+				tmp.push(f[3] - 1);
+			}			
+			g.faces.push(tmp);
+		});
+		console.log(JSON.stringify(g));
+	}
+	*/	
 
 	transformVertices(s = this.transformScale, r = this.transformRotate) {
 		r = (r / 180) * 3.1415;
@@ -40,8 +62,8 @@ class Geometry3D {
 	}
 
 	calcFacelightening(face) {
-		var v1 = this.transformedVertices[face[0]].getSubtract(this.transformedVertices[face[1]]); // first edge of this face
-		var v2 = this.transformedVertices[face[2]].getSubtract(this.transformedVertices[face[1]]); // second edge of this face
+		var v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
+		var v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
 
 		var vCross = new Point((v1.y * v2.z - v1.z * v2.y), (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x)); // face normal vector
 		vCross.normalize(); // unity face normal vector
@@ -62,27 +84,17 @@ class Geometry3D {
 			var faceLightening = this.calcFacelightening(f);
 
 			if(!flagShading || faceLightening > 0) {
+				var v = new Array();
+				for(var i = 0; i < f.length; i++) {
+					v.push(coords[f[i]]);
+				}
+
 				if(flagShading) {
 					faceLightening = Math.floor(255 * faceLightening);
-	
-					// TODO: Implement ZBuffer on the fill function
-					var v = new Array();
-					v.push(coords[f[0]]);
-					v.push(coords[f[1]]);
-					v.push(coords[f[2]]);
-					v.push(coords[f[3]]);
 					polyfill(v, faceLightening);
 				}
 				else {
-					context.beginPath();
-					context.moveTo(coords[f[0]].x,coords[f[0]].y);
-					context.lineTo(coords[f[1]].x,coords[f[1]].y);
-					context.lineTo(coords[f[2]].x,coords[f[2]].y);
-					context.lineTo(coords[f[3]].x,coords[f[3]].y);
-					context.lineTo(coords[f[0]].x,coords[f[0]].y);
-					context.closePath();
-					context.strokeStyle = "#00cc00";
-					context.stroke();
+					polydraw(v, "#00cc00");
 				}
 			}
 		});
@@ -107,6 +119,17 @@ function setPixel (x,y,r=0,g=0,b=0,a=255) {
 	canvasBuffer.data[offset+3] = a;	
 }
 
+function polydraw(vertexes, color) {
+	context.beginPath();
+	context.moveTo(vertexes[0].x,vertexes[0].y);
+	for(var i = (vertexes.length - 1); i >= 0; i--) {
+		context.lineTo(vertexes[i].x,vertexes[i].y);
+	}
+	context.closePath();
+	context.strokeStyle = color;
+	context.stroke();
+}
+
 // BUG: the junction of the 2 triangles sometimes has a flaw that is not filled, probable related to rounding in the setPixel function
 async function polyfill(vertexes, color) // 3 or 4 vertexes only
 {
@@ -128,16 +151,13 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 	}
 
   	/* TOP -> MID */
-  	var delta_x1 = vertexes[top].x - vertexes[bot].x;
-  	var delta_y1 = vertexes[top].y - vertexes[bot].y;
-  	var delta_x2 = vertexes[top].x - vertexes[mid].x;
-  	var delta_y2 = vertexes[top].y - vertexes[mid].y;
-  	var delta_x3 = vertexes[mid].x - vertexes[bot].x;
-  	var delta_y3 = vertexes[mid].y - vertexes[bot].y;
+  	var delta1 = vertexes[top].getSubtraction(vertexes[bot]);
+  	var delta2 = vertexes[top].getSubtraction(vertexes[mid]);
+  	var delta3 = vertexes[mid].getSubtraction(vertexes[bot]);
 
     for (var y = vertexes[top].y; y <= vertexes[mid].y; y++) {
-    	var pos_x1 = vertexes[top].x + (delta_x1 * ((y-vertexes[top].y)/delta_y1));
-    	var pos_x2 = vertexes[mid].x + (delta_x2 * ((y-vertexes[mid].y)/delta_y2));
+    	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
+    	var pos_x2 = vertexes[mid].x + (delta2.x * ((y-vertexes[mid].y)/delta2.y));
 
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
@@ -153,8 +173,8 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 
     /* MID -> BOT */
     for (var y = vertexes[mid].y; y <= vertexes[bot].y; y++) {
-    	var pos_x1 = vertexes[top].x + (delta_x1 * ((y-vertexes[top].y)/delta_y1));
-    	var pos_x2 = vertexes[mid].x + (delta_x3 * ((y-vertexes[mid].y)/delta_y3));
+    	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
+    	var pos_x2 = vertexes[mid].x + (delta3.x * ((y-vertexes[mid].y)/delta3.y));
 
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
@@ -169,11 +189,7 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
     }
 
 	if(vertexes.length === 4) {
-		var v = new Array()
-		v[0] = vertexes[2];
-		v[1] = vertexes[3];
-		v[2] = vertexes[0];
-		polyfill(v, color);
+		polyfill(new Array(vertexes[2], vertexes[3], vertexes[0]), color);
 	}
 }
 
@@ -216,7 +232,7 @@ function prepareCanvas()
 	canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);
 
 	geometriesData.forEach((gd) => {
-		geometries.push(new Geometry3D(gd));
+		geometries.push(new Geometry3D(JSON.parse(gd)));
 	});
 
 	setInterval(animationLoop,20);
