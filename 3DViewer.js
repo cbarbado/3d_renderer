@@ -80,23 +80,23 @@ class Geometry3D {
 			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
 			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
 		});
+
 		this.faces.forEach((f) => {
-			var faceLightening = this.calcFacelightening(f);
-
-			if(!flagShading || faceLightening > 0) {
-				var v = new Array();
-				for(var i = 0; i < f.length; i++) {
-					v.push(coords[f[i]]);
-				}
-
-				if(flagShading) {
-					faceLightening = Math.floor(255 * faceLightening);
-					polyfill(v, faceLightening);
-				}
-				else {
-					polydraw(v, "#00cc00");
-				}
+			var v = new Array();
+			for(var i = 0; i < f.length; i++) {
+				v.push(coords[f[i]]);
 			}
+
+			if(!flagShading) { // wireframes only
+				polydraw(v, "#00cc00");
+				return;
+			}
+
+			var faceLightening = this.calcFacelightening(f);
+			if(faceLightening > 0) {
+				faceLightening = Math.floor(255 * faceLightening);
+				polyfill(v, faceLightening);
+	    	}
 		});
 		if(flagShading) {
 			context.putImageData(canvasBuffer, 0, 0);
