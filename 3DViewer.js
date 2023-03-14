@@ -40,24 +40,23 @@ class Geometry3D {
 	}
 
 	calcFacelightening(face) {
-		var v1 = this.transformedVertices[face[0]-1].getSubtract(this.transformedVertices[face[1]-1]); // first edge of this face
-		var v2 = this.transformedVertices[face[2]-1].getSubtract(this.transformedVertices[face[1]-1]); // second edge of this face
+		var v1 = this.transformedVertices[face[0]].getSubtract(this.transformedVertices[face[1]]); // first edge of this face
+		var v2 = this.transformedVertices[face[2]].getSubtract(this.transformedVertices[face[1]]); // second edge of this face
 
 		var vCross = new Point((v1.y * v2.z - v1.z * v2.y), (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x)); // face normal vector
 		vCross.normalize(); // unity face normal vector
 
-		return (vCross.x + vCross.y - vCross.z) * 0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
+		return (vCross.x + vCross.y + vCross.z) * -0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
 	}
 
 	/* TODO: convert the data files from multiple edges polygons to tryangles meshes */
-	/* TODO: subtract 1 from the vertices indexes in the data files */
 	render(context, width = 0, height = 0, flagShading = false) {
 		var coords = new Array();
 		var offsetX = width / 2;
 		var offsetY = height / 2;
 		this.transformedVertices.forEach((v) => {
 			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
-			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 + v.z * 0.816 + offsetY, v.z));
+			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
 		});
 		this.faces.forEach((f) => {
 			var faceLightening = this.calcFacelightening(f);
@@ -68,19 +67,19 @@ class Geometry3D {
 	
 					// TODO: Implement ZBuffer on the fill function
 					var v = new Array();
-					v.push(coords[f[0]-1]);
-					v.push(coords[f[1]-1]);
-					v.push(coords[f[2]-1]);
-					v.push(coords[f[3]-1]);
+					v.push(coords[f[0]]);
+					v.push(coords[f[1]]);
+					v.push(coords[f[2]]);
+					v.push(coords[f[3]]);
 					polyfill(v, faceLightening);
 				}
 				else {
 					context.beginPath();
-					context.moveTo(coords[f[0]-1].x,coords[f[0]-1].y);
-					context.lineTo(coords[f[1]-1].x,coords[f[1]-1].y);
-					context.lineTo(coords[f[2]-1].x,coords[f[2]-1].y);
-					context.lineTo(coords[f[3]-1].x,coords[f[3]-1].y);
-					context.lineTo(coords[f[0]-1].x,coords[f[0]-1].y);
+					context.moveTo(coords[f[0]].x,coords[f[0]].y);
+					context.lineTo(coords[f[1]].x,coords[f[1]].y);
+					context.lineTo(coords[f[2]].x,coords[f[2]].y);
+					context.lineTo(coords[f[3]].x,coords[f[3]].y);
+					context.lineTo(coords[f[0]].x,coords[f[0]].y);
 					context.closePath();
 					context.strokeStyle = "#00cc00";
 					context.stroke();
@@ -193,7 +192,7 @@ var angle = 0;
 function animationLoop() {
 	if(currentGeometry == null) return;
 
-	currentGeometry.transformVertices(-0.0075, angle); /* TODO: normalize objetcs size in data files to remove this arbitrary scale factor */
+	currentGeometry.transformVertices(1, angle);
 	clearCanvas();
 	currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
 
