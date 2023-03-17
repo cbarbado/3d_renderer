@@ -20,6 +20,22 @@
     <script type="text/javascript" src="data/mechpart_wdt.json"></script>
     <script type="text/javascript" src="data/rocket_wdt.json"></script>
     <script type="text/javascript" src="3DViewer.js"></script>
+
+    <script type="text/javascript">
+      function onSelectGeometry(id){
+        var currentGeometry = setGeometry(id);
+        var currentColor = currentGeometry ? currentGeometry.color : "#FFFFFF"
+        document.getElementById('colorpicker').value = currentColor;
+    		document.getElementById('colorpickerwrapper').style.backgroundColor = currentColor;
+      }
+
+      function onChangeColor(){
+        document.getElementById('colorpickerwrapper').style.backgroundColor = document.getElementById('colorpicker').value;
+        setGeometryColor(document.getElementById('colorpicker').value)
+      }
+    </script>
+
+
   </head>
   <body>
     <div class="container">
@@ -32,19 +48,19 @@
           </div>
         </nav>
         <div class="item-b">
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(0)">Cube</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(1)">Pyramid</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(2)">Pawn</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(3)">Cylinder</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(4)">Funnels</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(5)">Beads</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(6)">Cone</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(7)">Sphere</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(8)">Toroid</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(9)">Lgbeads</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(10)">Mechpart</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(11)">Rocket</button>  
-          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="setGeometry(null)">Clear</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(0)">Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(1)">Pyramid</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(2)">Pawn</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(3)">Cylinder</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(4)">Funnels</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(5)">Beads</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(6)">Cone</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(7)">Sphere</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(8)">Toroid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(9)">Lgbeads</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(10)">Mechpart</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(11)">Rocket</button>  
+          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectGeometry(null)">Clear</button>  	
           <div class="divider" style="margin-bottom: 10px"></div>
           <div class="item-c">
             <p>
@@ -56,7 +72,7 @@
             <p>
               <label>
                 <span id="colorpickerwrapper" style = "background-color: #cccccc; width: 20px; height: 20px; display:inline-block; border: 2px solid black;">
-                  <input class="filled-in" id="colorpicker" onChange="document.getElementById('colorpickerwrapper').style.backgroundColor = document.getElementById('colorpicker').value; setGeometryColor(document.getElementById('colorpicker').value)" type="color" value="#cccccc" style="opacity: 0; height: 20px">
+                  <input class="filled-in" id="colorpicker" onChange="onChangeColor()" type="color" value="#cccccc" style="opacity: 0; height: 20px">
                 </span>
                 <span style="font-size: 1rem; padding-left: 15px; cursor: pointer;">Color</span>
               </label>

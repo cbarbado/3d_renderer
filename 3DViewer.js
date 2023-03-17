@@ -23,37 +23,13 @@ class Point {
 
 class Geometry3D {
 	constructor(geometryData) {
-		this.vertices           = geometryData.vertices;
-		this.faces              = geometryData.faces;
-		this.color              = geometryData.color;
-		if(!this.color) this.color = [180,180,180];
-		this.transformRotate    = 0;
-		this.transformScale     = 1;
+		this.vertices            = geometryData.vertices;
+		this.faces               = geometryData.faces;
+		this.color               = geometryData.color ? geometryData.color : "#969696";
+		this.transformRotate     = 0;
+		this.transformScale      = 1;
 		this.transformedVertices = new Array();
 	}
-
-	/* TEMPORARY CODE TO CONVERT FROM BOOK C FORMAT TO JAVASCRIPT JSON FORMAT */
-	/* DONE: subtract 1 from the vertices indexes in the data files */
-	/* DONE: remove headers from data files. they are not necessary in json format. */
-	/* DONE: scale down vertices (0.0075) */
-	/*
-	convert() {
-		var g = new Object();
-		g.vertices = new Array();
-		g.faces    = new Array();
-		this.vertices.forEach((v) => {
-			g.vertices.push(new Array(v[0] * 0.0075, v[1] * 0.0075, v[2] * 0.0075));
-		});
-		this.faces.forEach((f) => {
-			var tmp = new Array(f[0] - 1, f[1] - 1, f[2] - 1);
-			if(f.length > 3) {
-				tmp.push(f[3] - 1);
-			}			
-			g.faces.push(tmp);
-		});
-		console.log(JSON.stringify(g));
-	}
-	*/	
 
 	transformVertices(s = this.transformScale, r = this.transformRotate) {
 		r = (r / 180) * 3.1415;
@@ -73,11 +49,19 @@ class Geometry3D {
 		return (vCross.x + vCross.y + vCross.z) * -0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
 	}
 
+	getColorRGB() {
+		var tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.color);
+		return {r: parseInt(tmp[1], 16), g: parseInt(tmp[2], 16), b: parseInt(tmp[3], 16)};
+	}
+
 	/* TODO: convert the data files from multiple edges polygons to tryangles meshes */
 	render(context, width = 0, height = 0, flagShading = false) {
-		var coords = new Array();
-		var offsetX = width / 2;
+		var coords  = new Array();
+		var offsetX = width  / 2;
 		var offsetY = height / 2;
+
+		var rgbColor = this.getColorRGB();
+
 		this.transformedVertices.forEach((v) => {
 			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
 			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
@@ -96,11 +80,10 @@ class Geometry3D {
 
 			var faceLightening = this.calcFacelightening(f);
 			if(faceLightening > 0) {
-				// faceLightening = Math.floor(255 * faceLightening);
 				var faceColor = new Array();
-				faceColor[0] = Math.floor(this.color[0] * faceLightening)
-				faceColor[1] = Math.floor(this.color[1] * faceLightening)
-				faceColor[2] = Math.floor(this.color[2] * faceLightening)
+				faceColor[0] = Math.floor(rgbColor.r * faceLightening)
+				faceColor[1] = Math.floor(rgbColor.g * faceLightening)
+				faceColor[2] = Math.floor(rgbColor.b * faceLightening)
 				polyfill(v, faceColor);
 	    	}
 		});
@@ -199,7 +182,6 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 	}
 }
 
-
 const canvasWidth  = 600;
 const canvasHeight = 600;
 var canvas;
@@ -249,25 +231,17 @@ function toogleShading() {
 }
 
 function setGeometry(g) {
-	if(g == null) {
-		currentGeometry = null;	
+	currentGeometry = (null != g) ? geometries[g] : null;
+	if (null == currentGeometry) {
 		clearCanvas();
 	}
-	else {
-		currentGeometry = geometries[g];
-		var hexcolor = "#" + (1 << 24 | currentGeometry.color[0] << 16 | currentGeometry.color[1] << 8 | currentGeometry.color[2]).toString(16).slice(1);
-		document.getElementById('colorpicker').value = hexcolor;
-		document.getElementById('colorpickerwrapper').style.backgroundColor = hexcolor;
-	}
+	return currentGeometry;
 }
 
 function setGeometryColor(c) {
 	if(null != currentGeometry)
 	{
-		var tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(c);
-		currentGeometry.color[0] = parseInt(tmp[1], 16);
-		currentGeometry.color[1] = parseInt(tmp[2], 16);
-		currentGeometry.color[2] = parseInt(tmp[3], 16);
+		currentGeometry.color = c;
 	}
 }
 
