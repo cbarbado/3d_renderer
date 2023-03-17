@@ -45,13 +45,23 @@
           <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(10)">Mechpart</button>  
           <button type="button" class="waves-effect waves-light btn" onclick="setGeometry(11)">Rocket</button>  
           <button type="button" class="waves-effect waves-light btn red accent-2" onclick="setGeometry(null)">Clear</button>  	
-          <div class="divider"></div>
-          <p>
-            <label>
-              <input type="checkbox" class="filled-in" onclick="toogleShading(null);"/>
-              <span>Shading (WIP)</span>
-            </label>
-          </p>
+          <div class="divider" style="margin-bottom: 10px"></div>
+          <div class="item-c">
+            <p>
+              <label>
+                <input type="checkbox" class="filled-in" onclick="toogleShading(null);"/>
+                <span>Shading</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <span id="colorpickerwrapper" style = "background-color: #cccccc; width: 20px; height: 20px; display:inline-block; border: 2px solid black;">
+                  <input class="filled-in" id="colorpicker" onChange="document.getElementById('colorpickerwrapper').style.backgroundColor = document.getElementById('colorpicker').value; setGeometryColor(document.getElementById('colorpicker').value)" type="color" value="#cccccc" style="opacity: 0; height: 20px">
+                </span>
+                <span style="font-size: 1rem; padding-left: 15px; cursor: pointer;">Color</span>
+              </label>
+            </p>
+          </div>
         </div>
 
         <div class="item-c" style="background-color: #404040; width: 600px; height: 600px;" id="canvasDiv">

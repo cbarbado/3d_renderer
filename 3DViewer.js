@@ -25,6 +25,8 @@ class Geometry3D {
 	constructor(geometryData) {
 		this.vertices           = geometryData.vertices;
 		this.faces              = geometryData.faces;
+		this.color              = geometryData.color;
+		if(!this.color) this.color = [180,180,180];
 		this.transformRotate    = 0;
 		this.transformScale     = 1;
 		this.transformedVertices = new Array();
@@ -94,8 +96,12 @@ class Geometry3D {
 
 			var faceLightening = this.calcFacelightening(f);
 			if(faceLightening > 0) {
-				faceLightening = Math.floor(255 * faceLightening);
-				polyfill(v, faceLightening);
+				// faceLightening = Math.floor(255 * faceLightening);
+				var faceColor = new Array();
+				faceColor[0] = Math.floor(this.color[0] * faceLightening)
+				faceColor[1] = Math.floor(this.color[1] * faceLightening)
+				faceColor[2] = Math.floor(this.color[2] * faceLightening)
+				polyfill(v, faceColor);
 	    	}
 		});
 		if(flagShading) {
@@ -161,12 +167,12 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-			    setPixel(x,y,color, color, color);
+			    setPixel(x,y,color[0], color[1], color[2]);
 	    	}
 	    }
 	    else {
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-			    setPixel(x,y,color,color,color);
+			    setPixel(x,y,color[0], color[1], color[2]);
 	    	}
 	    }
     }
@@ -178,12 +184,12 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-			    setPixel(x,y,color,color,color);
+			    setPixel(x,y,color[0], color[1], color[2]);
 	    	}
 	    }
 	    else {
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-			    setPixel(x,y,color,color,color);
+			    setPixel(x,y,color[0], color[1], color[2]);
 	    	}
 	    }
     }
@@ -249,6 +255,19 @@ function setGeometry(g) {
 	}
 	else {
 		currentGeometry = geometries[g];
+		var hexcolor = "#" + (1 << 24 | currentGeometry.color[0] << 16 | currentGeometry.color[1] << 8 | currentGeometry.color[2]).toString(16).slice(1);
+		document.getElementById('colorpicker').value = hexcolor;
+		document.getElementById('colorpickerwrapper').style.backgroundColor = hexcolor;
+	}
+}
+
+function setGeometryColor(c) {
+	if(null != currentGeometry)
+	{
+		var tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(c);
+		currentGeometry.color[0] = parseInt(tmp[1], 16);
+		currentGeometry.color[1] = parseInt(tmp[2], 16);
+		currentGeometry.color[2] = parseInt(tmp[3], 16);
 	}
 }
 
