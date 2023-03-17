@@ -61,8 +61,8 @@
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(10)">Mechpart</button>  
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(11)">Rocket</button>  
           <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectGeometry(null)">Clear</button>  	
-          <div class="divider" style="margin-bottom: 10px"></div>
-          <div class="item-c">
+          <div class="divider"></div>
+          <div>
             <p>
               <label>
                 <input type="checkbox" class="filled-in" onclick="toogleShading(null);"/>
@@ -71,8 +71,8 @@
             </p>
             <p>
               <label>
-                <span id="colorpickerwrapper" style = "background-color: #cccccc; width: 20px; height: 20px; display:inline-block; border: 2px solid black;">
-                  <input class="filled-in" id="colorpicker" onChange="onChangeColor()" type="color" value="#cccccc" style="opacity: 0; height: 20px">
+                <span id="colorpickerwrapper" class = "colorpickerwrapper">
+                  <input class="colorpicker" id="colorpicker" onChange="onChangeColor()" type="color" value="#FFFFFF">
                 </span>
                 <span style="font-size: 1rem; padding-left: 15px; cursor: pointer;">Color</span>
               </label>
@@ -80,9 +80,9 @@
           </div>
         </div>
 
-        <div class="item-c" style="background-color: #404040; width: 600px; height: 600px;" id="canvasDiv">
+        <div class="item-c" id="canvasDiv">
         </div>
-        <footer class="page-footer z-depth-1 item-d" style="padding: 0px">
+        <footer class="page-footer z-depth-1 item-d">
           <div class="footer-copyright">
             <div style="margin-left: 15px">© 2020 Cesar Barbado</div>
           </div>                

@@ -6,9 +6,13 @@
 }
 .item-c {
     grid-area: main;
+    background-color: #404040;
+    width: 600px;
+    height: 600px;    
 }
 .item-d {
     grid-area: footer;
+    padding: 0px;    
 }
 
 .content {
@@ -26,9 +30,23 @@
 
 .divider {
     margin-top: 10px;
+    margin-bottom: 10px;    
 }
 
 .btn {
     margin-bottom: 7px;
     width: 100%;
+}
+
+.colorpickerwrapper {
+    background-color: #FFFFFF;
+    width: 20px;
+    height: 20px;
+    display:inline-block;
+    border: 2px solid black;
+}
+
+.colorpicker {
+    opacity: 0;
+    height: 20px;
 }
