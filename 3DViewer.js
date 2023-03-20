@@ -27,15 +27,30 @@ class Geometry3D {
 		this.faces               = geometryData.faces;
 		this.color               = geometryData.color ? geometryData.color : "#969696";
 		this.transformRotate     = 0;
-		this.transformScale      = 1;
+		this.scale               = geometryData.scale ? geometryData.scale : [1, 1, 1];
 		this.transformedVertices = new Array();
 	}
 
 	transformVertices(s = this.transformScale, r = this.transformRotate) {
 		r = (r / 180) * 3.1415;
+		s = (null == s) ? this.scale : s;
 		this.transformedVertices = new Array();
 		this.vertices.forEach((v) => {
-			this.transformedVertices.push(new Point((v[0]*Math.cos(r)-v[1]*Math.sin(r))*s, (v[0]*Math.sin(r)+v[1]*Math.cos(r))*s, v[2]*s));
+			// ROTATE ON Z
+			var p = new Point();
+			p.x = (v[0] * Math.cos(r) - v[1] * Math.sin(r)) * s[0];
+			p.y = (v[0] * Math.sin(r) + v[1] * Math.cos(r)) * s[1];
+			p.z = v[2] * s[2];
+
+			// ROTATE ON X - PERSPECTIVE
+			var p2 = new Point();
+			p2.x = p.x;
+			p2.y = p.y * 0.707 + p.z * -0.707; // y * cos(45) + z * sin(45)
+			p2.z = p.y * 0.707 + p.z * 0.707;  // y * -sin(45) + z * cos (45)
+
+			p2.z = 1000 - p2.z; // view distance
+			
+			this.transformedVertices.push(p2);			
 		});
 	}
 
@@ -46,7 +61,9 @@ class Geometry3D {
 		var vCross = new Point((v1.y * v2.z - v1.z * v2.y), (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x)); // face normal vector
 		vCross.normalize(); // unity face normal vector
 
-		return (vCross.x + vCross.y + vCross.z) * -0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
+		// return (vCross.x + vCross.y + vCross.z) * -0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
+		// TODO: FACE CULLING AND FACE LIGHTENING ARE DIFFERENT!!!! 17.03.2023
+		return -vCross.z; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
 	}
 
 	getColorRGB() {
@@ -64,7 +81,10 @@ class Geometry3D {
 
 		this.transformedVertices.forEach((v) => {
 			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
-			coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
+			// coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
+			// coords.push(new Point(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z));
+
+			coords.push(new Point(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z));
 		});
 
 		this.faces.forEach((f) => {
@@ -196,7 +216,7 @@ var angle = 0;
 function animationLoop() {
 	if(currentGeometry == null) return;
 
-	currentGeometry.transformVertices(1, angle);
+	currentGeometry.transformVertices(null, angle);
 	clearCanvas();
 	currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
 
