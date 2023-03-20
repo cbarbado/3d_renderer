@@ -27,7 +27,7 @@ class Geometry3D {
 		this.faces               = geometryData.faces;
 		this.color               = geometryData.color ? geometryData.color : "#969696";
 		this.transformRotate     = 0;
-		this.scale               = geometryData.scale ? geometryData.scale : [1, 1, 1];
+		this.scale               = geometryData.scale ? geometryData.scale : [1, 1, 1]; // TODO: convert array to point
 		this.transformedVertices = new Array();
 	}
 
@@ -42,18 +42,20 @@ class Geometry3D {
 			p.y = (v[0] * Math.sin(r) + v[1] * Math.cos(r)) * s[1];
 			p.z = v[2] * s[2];
 
+			// CHANGE PERPECTIVE ANGLE TO BE DINAMIC
 			// ROTATE ON X - PERSPECTIVE
 			var p2 = new Point();
 			p2.x = p.x;
 			p2.y = p.y * 0.707 + p.z * -0.707; // y * cos(45) + z * sin(45)
 			p2.z = p.y * 0.707 + p.z * 0.707;  // y * -sin(45) + z * cos (45)
 
-			p2.z = 1000 - p2.z; // view distance
+			p2.z = 1000 - p2.z; // view distance // TODO: check why need to invert Z axis???
 			
 			this.transformedVertices.push(p2);			
 		});
 	}
 
+	// BUG: Check why culling is glitching on cube and pyramid
 	calcFacelightening(face) {
 		var v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
 		var v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
@@ -80,10 +82,6 @@ class Geometry3D {
 		var rgbColor = this.getColorRGB();
 
 		this.transformedVertices.forEach((v) => {
-			// TODO: add Z projection formula to enable ZBuffer implementation -- maybe just keep v.z value would work???
-			// coords.push(new Point(v.x * 0.707 + v.y * -0.707 + offsetX, v.x * 0.409 + v.y * 0.409 - v.z * 0.816 + offsetY, v.z));
-			// coords.push(new Point(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z));
-
 			coords.push(new Point(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z));
 		});
 
@@ -113,15 +111,26 @@ class Geometry3D {
 	}
 }
 
-function setPixel (x,y,r=0,g=0,b=0,a=255) {
+function setPixel (x,y,z,r=0,g=0,b=0,a=255) {
     x = Math.round(x);
     y = Math.round(y);
+    z = Math.round(z);
 
 	if((x < 0) || (y < 0) || (x >= canvasBuffer.width) || (y >= canvasBuffer.height)) {
 		return;
 	}
 
 	var offset = (y * canvasBuffer.width + x) * 4;
+
+	var offset = (y * canvasBuffer.width + x);
+
+	if(zBuffer[offset] <= z) {
+		return;
+	}
+	zBuffer[offset] = z;
+
+	offset *= 4;
+
 	canvasBuffer.data[offset]   = r;
 	canvasBuffer.data[offset+1] = g;
 	canvasBuffer.data[offset+2] = b;
@@ -159,40 +168,56 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
 		mid ++;
 	}
 
-  	/* TOP -> MID */
   	var delta1 = vertexes[top].getSubtraction(vertexes[bot]);
   	var delta2 = vertexes[top].getSubtraction(vertexes[mid]);
   	var delta3 = vertexes[mid].getSubtraction(vertexes[bot]);
 
+  	/* TOP -> MID */
     for (var y = vertexes[top].y; y <= vertexes[mid].y; y++) {
     	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
     	var pos_x2 = vertexes[mid].x + (delta2.x * ((y-vertexes[mid].y)/delta2.y));
+		//calc pos_z1 and pos_z2 as a function of y here
+    	var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
+    	var pos_z2 = vertexes[mid].z + (delta2.z * ((y-vertexes[mid].y)/delta2.y));
 
+		// TODO: REMOVE "1 / (pos_x2 - pos_x1)" FROM INSIDE LOOP TO INCREASE PERFORMANCE
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-			    setPixel(x,y,color[0], color[1], color[2]);
+				// calc z as a function of x here
+				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) / (pos_x2 - pos_x1));
+				// pass z as parameter here
+			    setPixel(x,y,z,color[0], color[1], color[2]);
 	    	}
 	    }
 	    else {
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-			    setPixel(x,y,color[0], color[1], color[2]);
+				// calc z as a function of x here
+				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) / (pos_x1 - pos_x2));
+			    setPixel(x,y,z,color[0],color[1],color[2]);
 	    	}
 	    }
     }
 
-    /* MID -> BOT */
+	/* MID -> BOT */
     for (var y = vertexes[mid].y; y <= vertexes[bot].y; y++) {
     	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
     	var pos_x2 = vertexes[mid].x + (delta3.x * ((y-vertexes[mid].y)/delta3.y));
+		//calc pos_z1 and pos_z2 as a function of y here
+    	var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
+    	var pos_z2 = vertexes[mid].z + (delta3.z * ((y-vertexes[mid].y)/delta3.y));
 
 	    if(pos_x2 > pos_x1) {
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-			    setPixel(x,y,color[0], color[1], color[2]);
+				// calc z as a function of x here
+				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) / (pos_x2 - pos_x1));				
+			    setPixel(x,y,z,color[0],color[1],color[2]);
 	    	}
 	    }
 	    else {
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-			    setPixel(x,y,color[0], color[1], color[2]);
+				// calc z as a function of x here
+				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) / (pos_x1 - pos_x2));
+			    setPixel(x,y,z,color[0],color[1],color[2]);
 	    	}
 	    }
     }
@@ -211,6 +236,7 @@ var geometries      = new Array();
 var currentGeometry = null;
 var flagShading     = false;
 var canvasBuffer;
+const zBuffer = new Float32Array(new ArrayBuffer(32 * canvasWidth * canvasHeight));
 
 var angle = 0;
 function animationLoop() {
@@ -218,6 +244,7 @@ function animationLoop() {
 
 	currentGeometry.transformVertices(null, angle);
 	clearCanvas();
+	clearZbuffer();
 	currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
 
 	angle = (angle + 1) % 360;
@@ -269,4 +296,10 @@ function clearCanvas()
 {
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);	
+}
+
+function clearZbuffer() {
+	for(var i = 0; i< zBuffer.length; i++) {
+		zBuffer[i] = 3.40282347e+38;  // Z axis increases with distance.
+	}	
 }
