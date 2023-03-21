@@ -9,15 +9,23 @@ class Point {
 		return new Point(this.x - p.x, this.y - p.y, this.z - p.z);
 	}
 
+	getRounded(p){
+		return new Point(Math.round(this.x), Math.round(this.y), Math.round(this.z));
+	}
+
 	getModule() {
 		return(Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z));
 	}
 
+	getCrossProduct (v) {
+		return new Point((this.y * v.z - this.z * v.y), (this.z * v.x - this.x * v.z), (this.x * v.y - this.y * v.x));
+	}
+
 	normalize() {
-		var inv_m = 1 / this.getModule();
-		this.x = this.x * inv_m;
-		this.y = this.y * inv_m;;
-		this.z = this.z * inv_m;;
+		var inv_module = 1 / this.getModule();
+		this.x = this.x * inv_module;
+		this.y = this.y * inv_module;
+		this.z = this.z * inv_module;
 	}
 }
 
@@ -32,22 +40,30 @@ class Geometry3D {
 	}
 
 	transformVertices(s = this.transformScale, r = this.transformRotate) {
-		r = (r / 180) * 3.1415;
+		r = r * (3.1415 / 180); // azimuth angle
 		s = (null == s) ? this.scale : s;
 		this.transformedVertices = new Array();
+
+		var teta = -60 * (3.1415 / 180); // tilt angle
+		var cos_teta = Math.cos(teta);
+		var sin_teta = Math.sin(teta);
+
+		var cos_alpha = Math.cos(r);
+		var sin_alpha = Math.sin(r);
+
+		// TODO: use transform matrix here instead of sepparate transformations, to increase performance
 		this.vertices.forEach((v) => {
-			// ROTATE ON Z
+			// ROTATE ON Z - AZIMUTH
 			var p = new Point();
-			p.x = (v[0] * Math.cos(r) - v[1] * Math.sin(r)) * s[0];
-			p.y = (v[0] * Math.sin(r) + v[1] * Math.cos(r)) * s[1];
+			p.x = (v[0] * cos_alpha - v[1] * sin_alpha) * s[0];
+			p.y = (v[0] * sin_alpha + v[1] * cos_alpha) * s[1];
 			p.z = v[2] * s[2];
 
-			// CHANGE PERPECTIVE ANGLE TO BE DINAMIC
-			// ROTATE ON X - PERSPECTIVE
+			// ROTATE ON X - CAMERA TILT ANGLE
 			var p2 = new Point();
 			p2.x = p.x;
-			p2.y = p.y * 0.707 + p.z * -0.707; // y * cos(45) + z * sin(45)
-			p2.z = p.y * 0.707 + p.z * 0.707;  // y * -sin(45) + z * cos (45)
+			p2.y = p.y * cos_teta + p.z * sin_teta;
+			p2.z = p.z * cos_teta - p.y * sin_teta; // p2.z = p.y * -sin_teta + p.z * cos_teta;
 
 			p2.z = 1000 - p2.z; // view distance // TODO: check why need to invert Z axis???
 			
@@ -60,7 +76,7 @@ class Geometry3D {
 		var v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
 		var v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
 
-		var vCross = new Point((v1.y * v2.z - v1.z * v2.y), (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x)); // face normal vector
+		var vCross = v1.getCrossProduct(v2); // face normal vector
 		vCross.normalize(); // unity face normal vector
 
 		// return (vCross.x + vCross.y + vCross.z) * -0.57735; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
@@ -99,9 +115,9 @@ class Geometry3D {
 			var faceLightening = this.calcFacelightening(f);
 			if(faceLightening > 0) {
 				var faceColor = new Array();
-				faceColor[0] = Math.floor(rgbColor.r * faceLightening)
-				faceColor[1] = Math.floor(rgbColor.g * faceLightening)
-				faceColor[2] = Math.floor(rgbColor.b * faceLightening)
+				faceColor.r = Math.floor(rgbColor.r * faceLightening);
+				faceColor.g = Math.floor(rgbColor.g * faceLightening);
+				faceColor.b = Math.floor(rgbColor.b * faceLightening);
 				polyfill(v, faceColor);
 	    	}
 		});
@@ -111,30 +127,27 @@ class Geometry3D {
 	}
 }
 
-function setPixel (x,y,z,r=0,g=0,b=0,a=255) {
-    x = Math.round(x);
-    y = Math.round(y);
-    z = Math.round(z);
+// BUG: zbuffer still glithching for minor distances (remove culling to see it better)
+function setPixel (point,color) {
+    point = point.getRounded();
 
-	if((x < 0) || (y < 0) || (x >= canvasBuffer.width) || (y >= canvasBuffer.height)) {
+	if((point.x < 0) || (point.y < 0) || (point.x >= canvasBuffer.width) || (point.y >= canvasBuffer.height)) {
 		return;
 	}
 
-	var offset = (y * canvasBuffer.width + x) * 4;
+	var offset = (point.y * canvasBuffer.width + point.x);
 
-	var offset = (y * canvasBuffer.width + x);
-
-	if(zBuffer[offset] <= z) {
+	if(zBuffer[offset] <= point.z) {
 		return;
 	}
-	zBuffer[offset] = z;
+	zBuffer[offset] = point.z;
 
 	offset *= 4;
 
-	canvasBuffer.data[offset]   = r;
-	canvasBuffer.data[offset+1] = g;
-	canvasBuffer.data[offset+2] = b;
-	canvasBuffer.data[offset+3] = a;	
+	canvasBuffer.data[offset]   = color.r;
+	canvasBuffer.data[offset+1] = color.g;
+	canvasBuffer.data[offset+2] = color.b;
+	canvasBuffer.data[offset+3] = 255; // full opaque alpha
 }
 
 function polydraw(vertexes, color) {
@@ -176,24 +189,22 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
     for (var y = vertexes[top].y; y <= vertexes[mid].y; y++) {
     	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
     	var pos_x2 = vertexes[mid].x + (delta2.x * ((y-vertexes[mid].y)/delta2.y));
-		//calc pos_z1 and pos_z2 as a function of y here
-    	var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
+
+		var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
     	var pos_z2 = vertexes[mid].z + (delta2.z * ((y-vertexes[mid].y)/delta2.y));
 
-		// TODO: REMOVE "1 / (pos_x2 - pos_x1)" FROM INSIDE LOOP TO INCREASE PERFORMANCE
 	    if(pos_x2 > pos_x1) {
+			var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-				// calc z as a function of x here
-				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) / (pos_x2 - pos_x1));
-				// pass z as parameter here
-			    setPixel(x,y,z,color[0], color[1], color[2]);
+				var z = pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) * ratio);
+			    setPixel(new Point(x,y,z),color);
 	    	}
 	    }
 	    else {
+			var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-				// calc z as a function of x here
-				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) / (pos_x1 - pos_x2));
-			    setPixel(x,y,z,color[0],color[1],color[2]);
+				var z = pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) * ratio);
+			    setPixel(new Point(x,y,z),color);
 	    	}
 	    }
     }
@@ -202,22 +213,22 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
     for (var y = vertexes[mid].y; y <= vertexes[bot].y; y++) {
     	var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
     	var pos_x2 = vertexes[mid].x + (delta3.x * ((y-vertexes[mid].y)/delta3.y));
-		//calc pos_z1 and pos_z2 as a function of y here
-    	var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
+
+		var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
     	var pos_z2 = vertexes[mid].z + (delta3.z * ((y-vertexes[mid].y)/delta3.y));
 
 	    if(pos_x2 > pos_x1) {
+			var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
 	    	for(var x = pos_x1; x <= pos_x2; x++) {
-				// calc z as a function of x here
-				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) / (pos_x2 - pos_x1));				
-			    setPixel(x,y,z,color[0],color[1],color[2]);
+				var z = pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) * ratio);				
+			    setPixel(new Point(x,y,z),color);
 	    	}
 	    }
 	    else {
+			var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
 	    	for(var x = pos_x2; x <= pos_x1; x++) {
-				// calc z as a function of x here
-				var z = (pos_x2 == pos_x1) ? pos_z1 : pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) / (pos_x1 - pos_x2));
-			    setPixel(x,y,z,color[0],color[1],color[2]);
+				var z = pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) * ratio);
+			    setPixel(new Point(x,y,z),color);
 	    	}
 	    }
     }
