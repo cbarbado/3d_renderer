@@ -30,19 +30,19 @@ class Element3D {
 }
 
 class Geometry3D {
-   constructor(geometryData) {
-      this.vertices            = geometryData.vertices;
-      this.faces               = geometryData.faces;
-      this.color               = geometryData.color ? geometryData.color : "#969696";
+   constructor(gd) { // geometry data
+      this.vertices            = gd.vertices.map((v) => ({ x: v[0], y: v[1], z: v[2] }));
+      this.faces               = gd.faces;
+      this.color               = gd.color ? gd.color : "#969696";
       this.transformRotate     = 0;
-      this.scale               = geometryData.scale ? geometryData.scale : [1, 1, 1]; // TODO: convert array to Element3D
-      this.transformedVertices = new Array();
+      this.scale               = gd.scale ? {x: gd.scale[0], y: gd.scale[1], z: gd.scale[2]} : {x: 1, y: 1, z: 1};
+      this.transformedVertices = [];
    }
 
    transformVertices(s = this.transformScale, r = this.transformRotate) {
       r = r * (3.1415 / 180); // azimuth angle
       s = (null == s) ? this.scale : s;
-      this.transformedVertices = new Array();
+      this.transformedVertices = [];
 
       var teta = -60 * (3.1415 / 180); // tilt angle
       var cos_teta = Math.cos(teta);
@@ -55,9 +55,9 @@ class Geometry3D {
       this.vertices.forEach((v) => {
          // ROTATE ON Z - AZIMUTH
          var p = new Element3D();
-         p.x = (v[0] * cos_alpha - v[1] * sin_alpha) * s[0];
-         p.y = (v[0] * sin_alpha + v[1] * cos_alpha) * s[1];
-         p.z = v[2] * s[2];
+         p.x = (v.x * cos_alpha - v.y * sin_alpha) * s.x;
+         p.y = (v.x * sin_alpha + v.y * cos_alpha) * s.y;
+         p.z = v.z * s.z;
 
          // ROTATE ON X - CAMERA TILT ANGLE
          var p2 = new Element3D();
