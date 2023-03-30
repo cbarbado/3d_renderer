@@ -245,7 +245,7 @@ var context;
 var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData, lgbeadsData, mechpartData, rocketData];
 var geometries      = new Array();
 var currentGeometry = null;
-var flagShading     = false;
+var flagShading     = true;
 var canvasBuffer;
 const zBuffer = new Float32Array(new ArrayBuffer(32 * canvasWidth * canvasHeight));
 
