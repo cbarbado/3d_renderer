@@ -22,10 +22,10 @@ class Element3D {
    }
 
    normalize() {
-      var inv_module = 1 / this.getModule();
-      this.x = this.x * inv_module;
-      this.y = this.y * inv_module;
-      this.z = this.z * inv_module;
+      const inv_module = 1 / this.getModule();
+      this.x *= inv_module;
+      this.y *= inv_module;
+      this.z *= inv_module;
    }
 }
 
@@ -40,11 +40,13 @@ class Geometry3D {
    }
 
    transformVertices(s = this.transformScale, r = this.transformRotate) {
-      r = r * (3.1415 / 180); // azimuth angle
+      r = r * (Math.PI / 180); // azimuth angle
       s = (null == s) ? this.scale : s;
       this.transformedVertices = [];
 
-      var teta = -60 * (3.1415 / 180); // tilt angle
+      const camera = new Element3D(0,0,1500);
+
+      var teta = 60 * (Math.PI / 180); // tilt angle
       var cos_teta = Math.cos(teta);
       var sin_teta = Math.sin(teta);
 
@@ -54,18 +56,20 @@ class Geometry3D {
       // TODO: use transform matrix here instead of sepparate transformations, to increase performance
       this.vertices.forEach((v) => {
          // ROTATE ON Z - AZIMUTH
-         var p = new Element3D();
-         p.x = (v.x * cos_alpha - v.y * sin_alpha) * s.x;
-         p.y = (v.x * sin_alpha + v.y * cos_alpha) * s.y;
-         p.z = v.z * s.z;
+         var p = new Element3D(
+            (v.x * cos_alpha - v.y * sin_alpha) * s.x,
+            (v.x * sin_alpha + v.y * cos_alpha) * s.y,
+            v.z * s.z
+         );
 
          // ROTATE ON X - CAMERA TILT ANGLE
-         var p2 = new Element3D();
-         p2.x = p.x;
-         p2.y = p.y * cos_teta + p.z * sin_teta;
-         p2.z = p.z * cos_teta - p.y * sin_teta; // p2.z = p.y * -sin_teta + p.z * cos_teta;
+         var p2 = new Element3D(
+            p.x,
+            p.y * cos_teta + p.z * sin_teta,
+            p.z * cos_teta - p.y * sin_teta // FASTER p.y * -sin_teta + p.z * cos_teta;
+         );
 
-         p2.z = 1000 - p2.z; // view distance // TODO: check why need to invert Z axis???
+         p2 = p2.getSubtraction(camera);
          
          this.transformedVertices.push(p2);         
       });
@@ -98,7 +102,7 @@ class Geometry3D {
       var rgbColor = this.getColorRGB();
 
       this.transformedVertices.forEach((v) => {
-         coords.push(new Element3D(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z));
+         coords.push(new Element3D(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z)); // TODO: recall why I am multiplying vertexes by 1000. Maybe camera distance/projection?
       });
 
       this.faces.forEach((f) => {
@@ -137,7 +141,7 @@ function setPixel (Element3D,color) {
 
    var offset = (Element3D.y * canvasBuffer.width + Element3D.x);
 
-   if(zBuffer[offset] <= Element3D.z) {
+   if(zBuffer[offset] >= Element3D.z) {
       return;
    }
    zBuffer[offset] = Element3D.z;
@@ -167,6 +171,8 @@ async function polyfill(vertexes, color) // 3 or 4 vertexes only
    var top = 0;
    var bot = 0;
    var mid = 0;
+
+   // DEBUG ZBUFFER ---> contar o numero de faces e linhas pra pintar de vermelho linha que eu quero debugar !!!
 
    for(var i = 1; i < 3; i++) {
       if(vertexes[i].y < vertexes[top].y) {
@@ -249,6 +255,7 @@ var flagShading     = true;
 var canvasBuffer;
 const zBuffer = new Float32Array(new ArrayBuffer(32 * canvasWidth * canvasHeight));
 
+// DEBUG var angle = 273;
 var angle = 0;
 function animationLoop() {
    if(currentGeometry == null) return;
@@ -311,6 +318,6 @@ function clearCanvas()
 
 function clearZbuffer() {
    for(var i = 0; i< zBuffer.length; i++) {
-      zBuffer[i] = 3.40282347e+38;  // Z axis increases with distance.
+      zBuffer[i] = -3.40282347e+38;  // Z axis decreases with distance.
    }   
 }
