@@ -32,10 +32,11 @@ class Element3D {
 class Geometry3D {
    constructor(gd) { // geometry data
       this.vertices            = gd.vertices.map((v) => ({ x: v[0], y: v[1], z: v[2] }));
+      // this.faces               = gd.faces.map((f)=>([f[0]-1, f[1]-1, f[2]-1, f[3]-1])); // CONVERT FACES OLD INDEXES FROM STARTING FROM [1] TO START FROM [0]
       this.faces               = gd.faces;
       this.color               = gd.color ? gd.color : "#969696";
-      this.transformRotate     = 0;
       this.scale               = gd.scale ? {x: gd.scale[0], y: gd.scale[1], z: gd.scale[2]} : {x: 1, y: 1, z: 1};
+      this.transformRotate     = 0;
       this.transformedVertices = [];
    }
 
