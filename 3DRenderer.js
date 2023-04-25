@@ -32,7 +32,7 @@ class Element3D {
 class Geometry3D {
    constructor(gd) { // geometry data
       this.vertices            = gd.vertices.map((v) => ({ x: v[0], y: v[1], z: v[2] }));
-      // this.faces               = gd.faces.map((f)=>([f[0]-1, f[1]-1, f[2]-1, f[3]-1])); // CONVERT FACES OLD INDEXES FROM STARTING FROM [1] TO START FROM [0]
+      // this.faces               = gd.faces.map((f)=>([f[0]-1, f[1]-1, f[2]-1, f[3]-1])); // USED TO CONVERT FACES OLD INDEXES FROM STARTING FROM [1] TO START FROM [0]
       this.faces               = gd.faces;
       this.color               = gd.color ? gd.color : "#969696";
       this.scale               = gd.scale ? {x: gd.scale[0], y: gd.scale[1], z: gd.scale[2]} : {x: 1, y: 1, z: 1};
@@ -76,7 +76,7 @@ class Geometry3D {
       });
    }
 
-   // BUG: Check why culling is glitching on cube and pyramid
+   // BUG: Check why zBuffer is glitching on cube and pyramid // Culling is OK. It glitches because of perspective distortion.
    calcFacelightening(face) {
       var v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
       var v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
@@ -132,9 +132,9 @@ class Geometry3D {
    }
 }
 
-// BUG: zbuffer still glithching for minor distances (remove culling to see it better)
+// BUG: zbuffer still glithching for minor distances (remove culling to see it better) // check cube at 273 degress
 function setPixel (Element3D,color) {
-    Element3D = Element3D.getRounded();
+   Element3D = Element3D.getRounded();
 
    if((Element3D.x < 0) || (Element3D.y < 0) || (Element3D.x >= canvasBuffer.width) || (Element3D.y >= canvasBuffer.height)) {
       return;
@@ -249,22 +249,31 @@ const canvasWidth  = 600;
 const canvasHeight = 600;
 var canvas;
 var context;
-var geometriesData  = [cubeData, pyramidData, chesspawnData, cylinderData, funnelsData, beadsData, coneData, sphereData, toroidData, lgbeadsData, mechpartData, rocketData];
-var geometries      = new Array();
-var currentGeometry = null;
+
+const shapes = { // TODO: Change from 2 shapes arrays to a single array of shapes, putting high and low inside shape object!!!
+   high_poly: [cube, pyramid, chesspawn, cylinder, funnels, beads, cone, sphere, toroid, lgbeads, mechpart, rocket, grid].map((g) => (
+      new Geometry3D(JSON.parse(g))
+   )),
+   low_poly: [cube_low, pyramid_low, chesspawn_low, cylinder_low, funnels_low, beads_low, cone_low, sphere_low, toroid_low, lgbeads_low, mechpart_low, rocket_low, grid_low].map((g) => (
+      new Geometry3D(JSON.parse(g))
+   )),
+};
+
+var shapeIndex      = null;
 var flagShading     = true;
+var shapeResolution = "high_poly";
 var canvasBuffer;
 const zBuffer = new Float32Array(new ArrayBuffer(32 * canvasWidth * canvasHeight));
 
-// DEBUG var angle = 273;
 var angle = 0;
+// DEBUG var angle = 273;
 function animationLoop() {
-   if(currentGeometry == null) return;
+   if(shapeIndex == null) return;
 
-   currentGeometry.transformVertices(null, angle);
+   shapes[shapeResolution][shapeIndex].transformVertices(null, angle);
    clearCanvas();
    clearZbuffer();
-   currentGeometry.render(context, canvasWidth, canvasHeight, flagShading);
+   shapes[shapeResolution][shapeIndex].render(context, canvasWidth, canvasHeight, flagShading);
 
    angle = (angle + 1) % 360;
 }
@@ -285,10 +294,6 @@ function prepareCanvas()
 
    canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);
 
-   geometriesData.forEach((gd) => {
-      geometries.push(new Geometry3D(JSON.parse(gd)));
-   });
-
    setInterval(animationLoop,20);
 }
 
@@ -296,18 +301,23 @@ function toogleShading() {
    flagShading = !flagShading;
 }
 
-function setGeometry(g) {
-   currentGeometry = (null != g) ? geometries[g] : null;
-   if (null == currentGeometry) {
-      clearCanvas();
-   }
-   return currentGeometry;
+function toogleShapeResolution() {
+   shapeResolution = shapeResolution === "low_poly" ? "high_poly" : "low_poly";
 }
 
-function setGeometryColor(c) {
-   if(null != currentGeometry)
+function setShape(g) {
+   shapeIndex = g;   
+   if (null === g) {
+      clearCanvas();
+   }
+   return shapes[shapeResolution][shapeIndex];
+}
+
+function setShapeColor(c) {
+   if(null !== shapeIndex)
    {
-      currentGeometry.color = c;
+      shapes["low_poly"][shapeIndex].color  = c;
+      shapes["high_poly"][shapeIndex].color = c;
    }
 }
 

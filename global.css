@@ -1,16 +1,19 @@
-.item-a {
+.header {
     grid-area: header;
   }
-.item-b {
-    grid-area: sidebar;
+.sidebar-left {
+    grid-area: sidebar-1;
 }
-.item-c {
+.sidebar-right {
+    grid-area: sidebar-2;
+}
+.canvas-area {
     grid-area: main;
     background-color: #404040;
     width: 600px;
     height: 600px;    
 }
-.item-d {
+.footer {
     grid-area: footer;
     padding: 0px;    
 }
@@ -19,18 +22,12 @@
     margin: 10px 0px 10px;
     display: grid;
     justify-content: center;
-    grid-template-columns: 1fr 2fr 5fr 1fr;
-    /* grid-template-columns: 200px 600px; */
+    grid-template-columns: 1fr 600px 1fr;
     grid-template-areas:
-        "header header header header"
-        ". sidebar main ."
-        "footer footer footer footer";
+        "header header header"
+        "sidebar-1 main sidebar-2"
+        "footer footer footer";
     gap: 10px;
-}
-
-.divider {
-    margin-top: 10px;
-    margin-bottom: 10px;    
 }
 
 .btn {
