@@ -1,3 +1,151 @@
+class Graphics {
+   constructor(divID, elementID, width, height, updateLoop, refreshRate = 50) {
+      this.canvas = document.createElement(elementID);
+      this.canvas.setAttribute("width", width);
+      this.canvas.setAttribute("height", height);
+      this.canvas.setAttribute("id", elementID);
+      document.getElementById(divID).appendChild(this.canvas);
+      if(typeof G_vmlCanvasManager != "undefined") {
+         canvas = G_vmlCanvasManager.initElement(canvas);
+      }
+
+      this.context = this.canvas.getContext("2d");
+      this.buffer  = this.context.getImageData(0,0,width,height);
+      this.zBuffer = new Float32Array(new ArrayBuffer(32 * width * height));
+
+      setInterval(updateLoop,1000/refreshRate); // interval = 1000ms / refreshRate
+   }
+
+   updateCanvas() {
+      this.context.putImageData(this.buffer, 0, 0);
+   }
+
+   clearCanvas()
+   {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.buffer = this.context.getImageData(0,0,this.canvas.width,this.canvas.height);
+   }
+   
+   clearZbuffer() {
+      for(var i = 0; i< this.zBuffer.length; i++) {
+         this.zBuffer[i] = -3.40282347e+38;  // Z axis decreases with distance.
+      }   
+   }
+
+   drawPoligon(vertexes, color) {
+      this.context.beginPath();
+      this.context.moveTo(vertexes[0].x,vertexes[0].y);
+      for(var i = (vertexes.length - 1); i >= 0; i--) {
+         this.context.lineTo(vertexes[i].x,vertexes[i].y);
+      }
+      this.context.closePath();
+      this.context.strokeStyle = color;
+      this.context.stroke();
+   }
+   
+   // BUG: the junction of the 2 triangles sometimes has a flaw that is not filled, probable related to rounding in the setPixel function
+   fillPolygon(vertexes, color) // 3 or 4 vertexes only
+   {
+      var top = 0;
+      var bot = 0;
+      var mid = 0;
+   
+      // DEBUG ZBUFFER ---> contar o numero de faces e linhas pra pintar de vermelho linha que eu quero debugar !!!
+      for(var i = 1; i < 3; i++) {
+         if(vertexes[i].y < vertexes[top].y) {
+            top = i;
+         }
+         if(vertexes[i].y > vertexes[bot].y) {
+            bot = i;
+         }
+      }
+   
+      while ((mid == top) || (mid == bot)) {
+         mid ++;
+      }
+   
+      var delta1 = vertexes[top].getSubtraction(vertexes[bot]);
+      var delta2 = vertexes[top].getSubtraction(vertexes[mid]);
+      var delta3 = vertexes[mid].getSubtraction(vertexes[bot]);
+   
+      /* TOP -> MID */
+      var point = new Element3D();
+      for (point.y = vertexes[top].y; point.y <= vertexes[mid].y; point.y++) {
+         var pos_x1 = vertexes[top].x + (delta1.x * ((point.y-vertexes[top].y)/delta1.y));
+         var pos_x2 = vertexes[mid].x + (delta2.x * ((point.y-vertexes[mid].y)/delta2.y));
+   
+         var pos_z1 = vertexes[top].z + (delta1.z * ((point.y-vertexes[top].y)/delta1.y));
+         var pos_z2 = vertexes[mid].z + (delta2.z * ((point.y-vertexes[mid].y)/delta2.y));
+   
+         if(pos_x2 > pos_x1) {
+            var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
+            for(point.x = pos_x1; point.x <= pos_x2; point.x++) {
+               point.z = pos_z1 + (pos_z2 - pos_z1) * ((point.x - pos_x1) * ratio);
+               this.setPixel(point,color);
+            }
+         }
+         else {
+            var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
+            for(point.x = pos_x2; point.x <= pos_x1; point.x++) {
+               point.z = pos_z1 + (pos_z1 - pos_z2) * ((point.x - pos_x2) * ratio);
+               this.setPixel(point,color);
+            }
+         }
+      }
+   
+      /* MID -> BOT */
+      for (point.y = vertexes[mid].y; point.y <= vertexes[bot].y; point.y++) {
+         var pos_x1 = vertexes[top].x + (delta1.x * ((point.y-vertexes[top].y)/delta1.y));
+         var pos_x2 = vertexes[mid].x + (delta3.x * ((point.y-vertexes[mid].y)/delta3.y));
+   
+         var pos_z1 = vertexes[top].z + (delta1.z * ((point.y-vertexes[top].y)/delta1.y));
+         var pos_z2 = vertexes[mid].z + (delta3.z * ((point.y-vertexes[mid].y)/delta3.y));
+   
+         if(pos_x2 > pos_x1) {
+            var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
+            for(point.x = pos_x1; point.x <= pos_x2; point.x++) {
+               point.z = pos_z1 + (pos_z2 - pos_z1) * ((point.x - pos_x1) * ratio);            
+               this.setPixel(point,color);
+            }
+         }
+         else {
+            var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
+            for(point.x = pos_x2; point.x <= pos_x1; point.x++) {
+               point.z = pos_z1 + (pos_z1 - pos_z2) * ((point.x - pos_x2) * ratio);
+               this.setPixel(point,color);
+            }
+         }
+      }
+   
+      if(vertexes.length === 4) {
+         this.fillPolygon(new Array(vertexes[2], vertexes[3], vertexes[0]), color);
+      }
+   }
+
+   // BUG: zbuffer still glithching for minor distances (remove culling to see it better) // check cube at 273 degress
+   setPixel (point,color) {
+      point = point.getRounded();
+
+      if((point.x < 0) || (point.y < 0) || (point.x >= this.canvas.width) || (point.y >= this.canvas.height)) {
+         return;
+      }
+
+      var offset = (point.y * this.canvas.width + point.x);
+
+      if(this.zBuffer[offset] >= point.z) {
+         return;
+      }
+      this.zBuffer[offset] = point.z;
+
+      offset *= 4;
+
+      this.buffer.data[offset]   = color.r;
+      this.buffer.data[offset+1] = color.g;
+      this.buffer.data[offset+2] = color.b;
+      this.buffer.data[offset+3] = 255; // full opaque alpha
+   }
+}
+
 class Element3D {
    constructor(x = 0.0, y = 0.0, z = 0.0) {
       this.x = x;
@@ -32,7 +180,6 @@ class Element3D {
 class Geometry3D {
    constructor(gd) { // geometry data
       this.vertices            = gd.vertices.map((v) => ({ x: v[0], y: v[1], z: v[2] }));
-      // this.faces               = gd.faces.map((f)=>([f[0]-1, f[1]-1, f[2]-1, f[3]-1])); // USED TO CONVERT FACES OLD INDEXES FROM STARTING FROM [1] TO START FROM [0]
       this.faces               = gd.faces;
       this.color               = gd.color ? gd.color : "#969696";
       this.scale               = gd.scale ? {x: gd.scale[0], y: gd.scale[1], z: gd.scale[2]} : {x: 1, y: 1, z: 1};
@@ -56,23 +203,19 @@ class Geometry3D {
 
       // TODO: use transform matrix here instead of sepparate transformations, to increase performance
       this.vertices.forEach((v) => {
-         // ROTATE ON Z - AZIMUTH
-         var p = new Element3D(
+         var p = new Element3D( // ROTATE ON Z - AZIMUTH
             (v.x * cos_alpha - v.y * sin_alpha) * s.x,
             (v.x * sin_alpha + v.y * cos_alpha) * s.y,
             v.z * s.z
          );
 
-         // ROTATE ON X - CAMERA TILT ANGLE
-         var p2 = new Element3D(
+         var p2 = new Element3D( // ROTATE ON X - CAMERA TILT ANGLE
             p.x,
             p.y * cos_teta + p.z * sin_teta,
             p.z * cos_teta - p.y * sin_teta // FASTER p.y * -sin_teta + p.z * cos_teta;
          );
 
-         p2 = p2.getSubtraction(camera);
-         
-         this.transformedVertices.push(p2);         
+         this.transformedVertices.push(p2.getSubtraction(camera));         
       });
    }
 
@@ -90,30 +233,29 @@ class Geometry3D {
    }
 
    getColorRGB() {
-      var tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.color);
+      const tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.color);
       return {r: parseInt(tmp[1], 16), g: parseInt(tmp[2], 16), b: parseInt(tmp[3], 16)};
    }
 
    /* TODO: convert the data files from multiple edges polygons to tryangles meshes */
-   render(context, width = 0, height = 0, flagShading = false) {
-      var coords  = new Array();
-      var offsetX = width  / 2;
-      var offsetY = height / 2;
-
-      var rgbColor = this.getColorRGB();
+   render(graphics, flagShading = false) {
+      var coords    = [];
+      const offsetX = graphics.canvas.width  / 2;
+      const offsetY = graphics.canvas.height / 2;
+      var rgbColor  = this.getColorRGB();
 
       this.transformedVertices.forEach((v) => {
          coords.push(new Element3D(1000 * v.x / v.z + offsetX, 1000 * v.y / v.z + offsetY, 1000 * v.z)); // TODO: recall why I am multiplying vertexes by 1000. Maybe camera distance/projection?
       });
 
       this.faces.forEach((f) => {
-         var v = new Array();
+         var v = [];
          for(var i = 0; i < f.length; i++) {
             v.push(coords[f[i]]);
          }
 
          if(!flagShading) { // wireframes only
-            polydraw(v, "#00cc00");
+            graphics.drawPoligon(v, "#00cc00");
             return;
          }
 
@@ -123,132 +265,14 @@ class Geometry3D {
             faceColor.r = Math.floor(rgbColor.r * faceLightening);
             faceColor.g = Math.floor(rgbColor.g * faceLightening);
             faceColor.b = Math.floor(rgbColor.b * faceLightening);
-            polyfill(v, faceColor);
+            graphics.fillPolygon(v, faceColor);
           }
       });
       if(flagShading) {
-         context.putImageData(canvasBuffer, 0, 0);
+         graphics.updateCanvas();
       }
    }
 }
-
-// BUG: zbuffer still glithching for minor distances (remove culling to see it better) // check cube at 273 degress
-function setPixel (Element3D,color) {
-   Element3D = Element3D.getRounded();
-
-   if((Element3D.x < 0) || (Element3D.y < 0) || (Element3D.x >= canvasBuffer.width) || (Element3D.y >= canvasBuffer.height)) {
-      return;
-   }
-
-   var offset = (Element3D.y * canvasBuffer.width + Element3D.x);
-
-   if(zBuffer[offset] >= Element3D.z) {
-      return;
-   }
-   zBuffer[offset] = Element3D.z;
-
-   offset *= 4;
-
-   canvasBuffer.data[offset]   = color.r;
-   canvasBuffer.data[offset+1] = color.g;
-   canvasBuffer.data[offset+2] = color.b;
-   canvasBuffer.data[offset+3] = 255; // full opaque alpha
-}
-
-function polydraw(vertexes, color) {
-   context.beginPath();
-   context.moveTo(vertexes[0].x,vertexes[0].y);
-   for(var i = (vertexes.length - 1); i >= 0; i--) {
-      context.lineTo(vertexes[i].x,vertexes[i].y);
-   }
-   context.closePath();
-   context.strokeStyle = color;
-   context.stroke();
-}
-
-// BUG: the junction of the 2 triangles sometimes has a flaw that is not filled, probable related to rounding in the setPixel function
-async function polyfill(vertexes, color) // 3 or 4 vertexes only
-{
-   var top = 0;
-   var bot = 0;
-   var mid = 0;
-
-   // DEBUG ZBUFFER ---> contar o numero de faces e linhas pra pintar de vermelho linha que eu quero debugar !!!
-
-   for(var i = 1; i < 3; i++) {
-      if(vertexes[i].y < vertexes[top].y) {
-         top = i;
-      }
-      if(vertexes[i].y > vertexes[bot].y) {
-         bot = i;
-      }
-   }
-
-   while ((mid == top) || (mid == bot)) {
-      mid ++;
-   }
-
-   var delta1 = vertexes[top].getSubtraction(vertexes[bot]);
-   var delta2 = vertexes[top].getSubtraction(vertexes[mid]);
-   var delta3 = vertexes[mid].getSubtraction(vertexes[bot]);
-
-     /* TOP -> MID */
-   for (var y = vertexes[top].y; y <= vertexes[mid].y; y++) {
-      var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
-      var pos_x2 = vertexes[mid].x + (delta2.x * ((y-vertexes[mid].y)/delta2.y));
-
-      var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
-      var pos_z2 = vertexes[mid].z + (delta2.z * ((y-vertexes[mid].y)/delta2.y));
-
-      if(pos_x2 > pos_x1) {
-         var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
-         for(var x = pos_x1; x <= pos_x2; x++) {
-            var z = pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) * ratio);
-            setPixel(new Element3D(x,y,z),color);
-         }
-      }
-      else {
-         var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
-         for(var x = pos_x2; x <= pos_x1; x++) {
-            var z = pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) * ratio);
-             setPixel(new Element3D(x,y,z),color);
-         }
-      }
-   }
-
-   /* MID -> BOT */
-   for (var y = vertexes[mid].y; y <= vertexes[bot].y; y++) {
-      var pos_x1 = vertexes[top].x + (delta1.x * ((y-vertexes[top].y)/delta1.y));
-      var pos_x2 = vertexes[mid].x + (delta3.x * ((y-vertexes[mid].y)/delta3.y));
-
-      var pos_z1 = vertexes[top].z + (delta1.z * ((y-vertexes[top].y)/delta1.y));
-      var pos_z2 = vertexes[mid].z + (delta3.z * ((y-vertexes[mid].y)/delta3.y));
-
-      if(pos_x2 > pos_x1) {
-         var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x2 - pos_x1);
-         for(var x = pos_x1; x <= pos_x2; x++) {
-            var z = pos_z1 + (pos_z2 - pos_z1) * ((x - pos_x1) * ratio);            
-            setPixel(new Element3D(x,y,z),color);
-         }
-      }
-      else {
-         var ratio = (pos_x2 == pos_x1) ? 0 : 1 / (pos_x1 - pos_x2);
-         for(var x = pos_x2; x <= pos_x1; x++) {
-            var z = pos_z1 + (pos_z1 - pos_z2) * ((x - pos_x2) * ratio);
-            setPixel(new Element3D(x,y,z),color);
-         }
-      }
-   }
-
-   if(vertexes.length === 4) {
-      polyfill(new Array(vertexes[2], vertexes[3], vertexes[0]), color);
-   }
-}
-
-const canvasWidth  = 600;
-const canvasHeight = 600;
-var canvas;
-var context;
 
 const shapes = { // TODO: Change from 2 shapes arrays to a single array of shapes, putting high and low inside shape object!!!
    high_poly: [cube, pyramid, chesspawn, cylinder, funnels, beads, cone, sphere, toroid, lgbeads, mechpart, rocket, grid].map((g) => (
@@ -262,39 +286,24 @@ const shapes = { // TODO: Change from 2 shapes arrays to a single array of shape
 var shapeIndex      = null;
 var flagShading     = true;
 var shapeResolution = "high_poly";
-var canvasBuffer;
-const zBuffer = new Float32Array(new ArrayBuffer(32 * canvasWidth * canvasHeight));
+var graphics = null;
 
 var angle = 0;
 // DEBUG var angle = 273;
-function animationLoop() {
+function animate() { // TODO: pass function pointer as parameter to graphics init?
    if(shapeIndex == null) return;
 
    shapes[shapeResolution][shapeIndex].transformVertices(null, angle);
-   clearCanvas();
-   clearZbuffer();
-   shapes[shapeResolution][shapeIndex].render(context, canvasWidth, canvasHeight, flagShading);
+   graphics.clearCanvas();
+   graphics.clearZbuffer();
+   shapes[shapeResolution][shapeIndex].render(graphics, flagShading);
 
    angle = (angle + 1) % 360;
 }
 
-function prepareCanvas()
+function initGraphics(canvasDiv, canvasElement, width, height, refreshRate)
 {
-   var canvasDiv = document.getElementById("canvasDiv");
-   canvas = document.createElement("canvas");
-   canvas.setAttribute("width", canvasWidth);
-   canvas.setAttribute("height", canvasHeight);
-   canvas.setAttribute("id", "canvas");
-   canvasDiv.appendChild(canvas);
-   if(typeof G_vmlCanvasManager != "undefined") {
-      canvas = G_vmlCanvasManager.initElement(canvas);
-   }
-
-   context = document.getElementById("canvas").getContext("2d");
-
-   canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);
-
-   setInterval(animationLoop,20);
+   graphics = new Graphics(canvasDiv, canvasElement, width, height, animate, refreshRate);
 }
 
 function toogleShading() {
@@ -308,7 +317,7 @@ function toogleShapeResolution() {
 function setShape(g) {
    shapeIndex = g;   
    if (null === g) {
-      clearCanvas();
+      graphics.clearCanvas();
    }
    return shapes[shapeResolution][shapeIndex];
 }
@@ -319,16 +328,4 @@ function setShapeColor(c) {
       shapes["low_poly"][shapeIndex].color  = c;
       shapes["high_poly"][shapeIndex].color = c;
    }
-}
-
-function clearCanvas()
-{
-   context.clearRect(0, 0, canvasWidth, canvasHeight);
-   canvasBuffer = context.getImageData(0,0,canvasHeight,canvasHeight);   
-}
-
-function clearZbuffer() {
-   for(var i = 0; i< zBuffer.length; i++) {
-      zBuffer[i] = -3.40282347e+38;  // Z axis decreases with distance.
-   }   
 }
