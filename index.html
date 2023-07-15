@@ -4,12 +4,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">    
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="./global.css">
-    <title>3D Renderer (WIP)</title>
+    <title>3D Renderer</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
 
     <script type="text/javascript" src="high_poly_shapes/pyramid.json"></script>
     <script type="text/javascript" src="high_poly_shapes/cube.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/cutcube.json"></script>
     <script type="text/javascript" src="high_poly_shapes/chesspawn.json"></script>
     <script type="text/javascript" src="high_poly_shapes/cylinder.json"></script>
     <script type="text/javascript" src="high_poly_shapes/funnels.json"></script>
@@ -24,6 +25,7 @@
 
     <script type="text/javascript" src="low_poly_shapes/pyramid.json"></script>
     <script type="text/javascript" src="low_poly_shapes/cube.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/cutcube.json"></script>
     <script type="text/javascript" src="low_poly_shapes/chesspawn.json"></script>
     <script type="text/javascript" src="low_poly_shapes/cylinder.json"></script>
     <script type="text/javascript" src="low_poly_shapes/funnels.json"></script>
@@ -59,24 +61,25 @@
         <nav class="header">
           <div class="nav-wrapper" style="margin-left: 15px">
             <span class="left brand-logo">
-              3D Renderer (WIP)
+              3D Renderer
             </span>
           </div>
         </nav>
         <div class="sidebar-left">
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(0)">Cube</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(1)">Pyramid</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(2)">Pawn</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(3)">Cylinder</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(4)">Funnels</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(5)">Beads</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(6)">Cone</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(7)">Sphere</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(8)">Toroid</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(9)">Lgbeads</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(10)">Mechpart</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(11)">Rocket</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(12)">Grid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(1)">Cut Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(2)">Pyramid</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(3)">Pawn</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(4)">Cylinder</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(5)">Funnels</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(6)">Beads</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(7)">Cone</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(8)">Sphere</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(9)">Toroid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(10)">Lgbeads</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(11)">Mechpart</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(12)">Rocket</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(13)">Grid</button>  
           <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectShape(null)">Clear</button>  	
         </div>
 

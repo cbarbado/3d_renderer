@@ -1,3 +1,12 @@
+// TODOS:
+// - add translation to objects
+// - add light vector
+// - add ambient and difuse lighting
+// - add camera position
+// - add scenes with multiple objects
+// - convert objects from vertices & faces to triangle meshes
+// - read .3ds file formats
+
 class Graphics {
    constructor(divID, elementID, width, height, updateLoop, refreshRate = 50) {
       this.canvas = document.createElement(elementID);
@@ -258,10 +267,10 @@ class Geometry3D {
 }
 
 const shapes = { // TODO: Change from 2 shapes arrays to a single array of shapes, putting high and low inside shape object!!!
-   high_poly: [cube, pyramid, chesspawn, cylinder, funnels, beads, cone, sphere, toroid, lgbeads, mechpart, rocket, grid].map((g) => (
+   high_poly: [cube, cutcube, pyramid, chesspawn, cylinder, funnels, beads, cone, sphere, toroid, lgbeads, mechpart, rocket, grid].map((g) => (
       new Geometry3D(JSON.parse(g))
    )),
-   low_poly: [cube_low, pyramid_low, chesspawn_low, cylinder_low, funnels_low, beads_low, cone_low, sphere_low, toroid_low, lgbeads_low, mechpart_low, rocket_low, grid_low].map((g) => (
+   low_poly: [cube_low, cutcube_low, pyramid_low, chesspawn_low, cylinder_low, funnels_low, beads_low, cone_low, sphere_low, toroid_low, lgbeads_low, mechpart_low, rocket_low, grid_low].map((g) => (
       new Geometry3D(JSON.parse(g))
    )),
 };
