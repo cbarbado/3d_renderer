@@ -1,16 +1,13 @@
-# 3D Viewer
+# 3D Renderer
 
-This is a very simple demo code to test and practice my JS skills.
-The challenge was to draw 3D wireframes on a canvas with the minimum lines of code possible ( _it ended up with 100 lines!_ ).
-*UPDATE: after adding point/vector class and shading, it increased to 150 lines.*
+This is an improvement from the 3DViewer code, to test and practice my JS skills.
+The challenge was to add shading to the 3D models and render them on a canvas with the minimum lines of code possible ( _curentlz it is in the 300 lines range!_ ).
 
-It's based on my graduation project, written in ANSI C, in 1994.
-It was a program that rendered scenes on a regular PC (386 DX 40MHz), to be viewed in 3D using a pair of home made stereoscopic glasses ( _and it worked!_ ).
+It's based on my graduation project, written in ANSI C, in 1994, which had over 10.000 lines of code.
+It was a program that rendered scenes on a regular PC (386 DX 40MHz), to be viewed in 3D using a pair of home made stereoscopic glasses.
 
 The original 3D objects were binary files ( _from the book Programming in 3 Dimensions by Cristopher D. Watkins_ ), that I converted now to JSON files.
 
 Any comments and feedback are welcome!
 
 Thanks for your interest. ;-)
-
-*PS.: The current version is still WIP. Added shading and occlusion culling, but it still needs ZBuffer to work properly.*

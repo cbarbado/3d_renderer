@@ -4,68 +4,99 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">    
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="./global.css">
-    <title>asd</title>
+    <title>3D Renderer</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
-    <script type="text/javascript" src="data/pyramid_wdt.json"></script>
-    <script type="text/javascript" src="data/cube_wdt.json"></script>
-    <script type="text/javascript" src="data/chesspawn_wdt.json"></script>
-    <script type="text/javascript" src="data/cylinder_wdt.json"></script>
-    <script type="text/javascript" src="data/funnels_wdt.json"></script>
-    <script type="text/javascript" src="data/beads_wdt.json"></script>
-    <script type="text/javascript" src="data/cone_wdt.json"></script>
-    <script type="text/javascript" src="data/sphere_wdt.json"></script>
-    <script type="text/javascript" src="data/toroid_wdt.json"></script>
-    <script type="text/javascript" src="data/lgbeads_wdt.json"></script>
-    <script type="text/javascript" src="data/mechpart_wdt.json"></script>
-    <script type="text/javascript" src="data/rocket_wdt.json"></script>
-    <script type="text/javascript" src="3DViewer.js"></script>
+
+    <script type="text/javascript" src="high_poly_shapes/pyramid.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/cube.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/cutcube.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/chesspawn.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/cylinder.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/funnels.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/beads.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/cone.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/sphere.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/toroid.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/lgbeads.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/mechpart.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/rocket.json"></script>
+    <script type="text/javascript" src="high_poly_shapes/grid.json"></script>
+
+    <script type="text/javascript" src="low_poly_shapes/pyramid.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/cube.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/cutcube.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/chesspawn.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/cylinder.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/funnels.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/beads.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/cone.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/sphere.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/toroid.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/lgbeads.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/mechpart.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/rocket.json"></script>
+    <script type="text/javascript" src="low_poly_shapes/grid.json"></script>
+
+    <script type="text/javascript" src="3DRenderer.js"></script>
 
     <script type="text/javascript">
-      function onSelectGeometry(id){
-        var currentGeometry = setGeometry(id);
-        var currentColor = currentGeometry ? currentGeometry.color : "#FFFFFF"
-        document.getElementById('colorpicker').value = currentColor;
-    		document.getElementById('colorpickerwrapper').style.backgroundColor = currentColor;
+      function onSelectShape(id) {
+        var shape = setShape(id);
+        var color = shape ? shape.color : "#FFFFFF"
+        document.getElementById('colorpicker').value = color;
+    		document.getElementById('colorpickerwrapper').style.backgroundColor = color;
       }
 
-      function onChangeColor(){
+      function onChangeColor() {
         document.getElementById('colorpickerwrapper').style.backgroundColor = document.getElementById('colorpicker').value;
-        setGeometryColor(document.getElementById('colorpicker').value)
+        setShapeColor(document.getElementById('colorpicker').value)
       }
     </script>
-
 
   </head>
   <body>
     <div class="container">
       <div class="content">
-        <nav class="item-a">
+        <nav class="header">
           <div class="nav-wrapper" style="margin-left: 15px">
             <span class="left brand-logo">
-              3D Viewer
+              3D Renderer
             </span>
           </div>
         </nav>
-        <div class="item-b">
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(0)">Cube</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(1)">Pyramid</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(2)">Pawn</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(3)">Cylinder</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(4)">Funnels</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(5)">Beads</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(6)">Cone</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(7)">Sphere</button>  	
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(8)">Toroid</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(9)">Lgbeads</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(10)">Mechpart</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectGeometry(11)">Rocket</button>  
-          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectGeometry(null)">Clear</button>  	
-          <div class="divider"></div>
+        <div class="sidebar-left">
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(0)">Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(1)">Cut Cube</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(2)">Pyramid</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(3)">Pawn</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(4)">Cylinder</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(5)">Funnels</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(6)">Beads</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(7)">Cone</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(8)">Sphere</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(9)">Toroid</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(10)">Lgbeads</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(11)">Mechpart</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(12)">Rocket</button>  
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(13)">Grid</button>  
+          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectShape(null)">Clear</button>  	
+        </div>
+
+        <div class="canvas-area" id="canvasDiv">
+        </div>
+
+        <div class="sidebar-right">
           <div>
             <p>
               <label>
-                <input type="checkbox" class="filled-in" onclick="toogleShading(null);"/>
+                <input type="checkbox" class="filled-in" onclick="toogleShapeResolution(null);"/>
+                <span>LowPoly</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input type="checkbox" class="filled-in" onclick="toogleShading(null);" checked/>
                 <span>Shading</span>
               </label>
             </p>
@@ -80,15 +111,13 @@
           </div>
         </div>
 
-        <div class="item-c" id="canvasDiv">
-        </div>
-        <footer class="page-footer z-depth-1 item-d">
+        <footer class="page-footer z-depth-1 footer">
           <div class="footer-copyright">
             <div style="margin-left: 15px">© 2020 Cesar Barbado</div>
           </div>                
         </footer>
       </div>
-      <script type="text/javascript"> $(document).ready(function() { prepareCanvas(); });</script>
+      <script type="text/javascript"> $(document).ready(function() { initGraphics("canvasDiv", "canvas",600,600,50); });</script>
     </div>    
   </body>
 </html>
