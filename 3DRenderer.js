@@ -1,6 +1,5 @@
 // TODOS:
 // - add translation to objects + transfor matrix
-// - add light vector
 // - add ambient and difuse lighting
 // - add camera position
 // - add scenes with multiple objects
@@ -22,7 +21,7 @@ class Graphics {
       this.buffer  = this.context.getImageData(0,0,width,height);
       this.zBuffer = new Float32Array(new ArrayBuffer(32 * width * height));
 
-      this.lightVector = new Element3D(0, 0, -1);
+      this.lightVector = new Element3D(-1, -1, -1);
 
       setInterval(updateLoop,1000/refreshRate); // interval = 1000ms / refreshRate
    }
@@ -269,7 +268,6 @@ class Geometry3D {
          let faceNormalVector = this.getFaceNormalVector(f);
 
          if(this.checkBackFaceCulling(faceNormalVector, cameraVector)) {
-            // let lightVector = new Element3D(1, -1, -1); // TODO: Move lightVector to Graphics class
             let faceLightening = this.calcFacelightening(faceNormalVector,graphics.lightVector);
 
             let faceColor = new Array();
