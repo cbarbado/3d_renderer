@@ -1,5 +1,5 @@
 // TODOS:
-// - add translation to objects
+// - add translation to objects + transfor matrix
 // - add light vector
 // - add ambient and difuse lighting
 // - add camera position
@@ -102,15 +102,14 @@ class Graphics {
          mid ++;
       }
    
-      let delta1 = vertexes[top].getSubtraction(vertexes[bot]);
-      let delta2 = vertexes[top].getSubtraction(vertexes[mid]);
-      let delta3 = vertexes[mid].getSubtraction(vertexes[bot]);
+      let delta = vertexes[top].getSubtraction(vertexes[bot]);
 
-      let v3_x = Math.round(vertexes[top].x + (delta1.x * ((vertexes[mid].y-vertexes[top].y)/delta1.y)));
-      let v3_z = Math.round(vertexes[top].z + (delta1.z * ((vertexes[mid].y-vertexes[top].y)/delta1.y)));
+      let v3_x = Math.round(vertexes[top].x + (delta.x * ((vertexes[mid].y-vertexes[top].y)/delta.y)));
+      let v3_z = Math.round(vertexes[top].z + (delta.z * ((vertexes[mid].y-vertexes[top].y)/delta.y)));
+      let midVertex = new Element3D(v3_x, vertexes[mid].y, v3_z);
 
-      this.fillHalf(vertexes[top], vertexes[mid], new Element3D(v3_x, vertexes[mid].y, v3_z), color);
-      this.fillHalf(vertexes[bot], vertexes[mid], new Element3D(v3_x, vertexes[mid].y, v3_z), color);
+      this.fillHalf(vertexes[top], vertexes[mid], midVertex, color);
+      this.fillHalf(vertexes[bot], vertexes[mid], midVertex, color);
   
       if(vertexes.length === 4) {
          this.fillPolygon(new Array(vertexes[2], vertexes[3], vertexes[0]), color);
@@ -163,6 +162,11 @@ class Element3D {
       return new Element3D((this.y * v.z - this.z * v.y), (this.z * v.x - this.x * v.z), (this.x * v.y - this.y * v.x));
    }
 
+   getDotProduct (v) {
+      // TODO: CHECK
+      return ((this.x * v.x + this.y * v.y + this.z * v.z) / (this.getModule() * v.getModule()));
+   }
+
    normalize() {
       const inv_module = 1 / this.getModule();
       this.x *= inv_module;
@@ -213,14 +217,25 @@ class Geometry3D {
       });
    }
 
-   calcFacelightening(face) {
+   getFaceNormalVector(face) {
       let v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
       let v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
 
-      let vCross = v1.getCrossProduct(v2); // face normal vector
-      vCross.normalize(); // unity face normal vector
+      return (v1.getCrossProduct(v2)); // face normal vector
+   }
 
+   checkBackFaceCulling(faceNormalVector, cameraVector) {
+      return (faceNormalVector.getDotProduct(cameraVector) > 0 ? true : false);
+   }
+
+   calcFacelightening(faceNormalVector, lightVector) {
+      // TODO: SEPARATE LIGHT VECTOR FROM CULLING VECTOR (getFaceNormalVector + getBackFaceCullingFlag + calcFaceLightening)
+      return faceNormalVector.getDotProduct(lightVector);
+
+      /* PREVIOUS
+      vCross.normalize(); // unity face normal vector
       return -vCross.z; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
+      */
    }
 
    getColorRGB() {
@@ -251,8 +266,13 @@ class Geometry3D {
             return;
          }
 
-         let faceLightening = this.calcFacelightening(f);
-         if(faceLightening > 0) {
+         let cameraVector = new Element3D(0, 0, -1);
+         let faceNormalVector = this.getFaceNormalVector(f);
+
+         if(this.checkBackFaceCulling(faceNormalVector, cameraVector)) {
+            let lightVector = new Element3D(-1, 0, -1);
+            let faceLightening = this.calcFacelightening(faceNormalVector,lightVector);
+
             let faceColor = new Array();
             faceColor.r = Math.floor(rgbColor.r * faceLightening);
             faceColor.g = Math.floor(rgbColor.g * faceLightening);
