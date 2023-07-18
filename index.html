@@ -87,7 +87,7 @@
         </div>
 
         <div class="sidebar-right">
-          <div>
+          <div class="row">
             <p>
               <label>
                 <input type="checkbox" class="filled-in" onclick="toogleShapeResolution(null);"/>
@@ -103,11 +103,27 @@
             <p>
               <label>
                 <span id="colorpickerwrapper" class = "colorpickerwrapper">
-                  <input class="colorpicker" id="colorpicker" onChange="onChangeColor()" type="color" value="#FFFFFF">
+                  <input class="colorpicker" id="colorpicker" onChange="onChangeColor();" type="color" value="#FFFFFF">
                 </span>
                 <span style="font-size: 1rem; padding-left: 15px; cursor: pointer;">Color</span>
               </label>
             </p>
+          </div>
+          Camera Position:
+          <div class="row" style="margin-bottom: 0px;">
+            <label><input name="light" type="radio" checked onclick="setLightVector(-1, -1, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(0, -1, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(1, -1, -1);"/><span style="padding-left: 22px;"></span></label>
+          </div>
+          <div class="row" style="margin-bottom: 0px;">
+            <label><input name="light" type="radio" onclick="setLightVector(-1, 0, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(0, 0, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(1, 0, -1);"/><span style="padding-left: 22px;"></span></label>
+          </div>
+          <div class="row" style="margin-bottom: 0px;">
+            <label><input name="light" type="radio" onclick="setLightVector(-1, 1, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(0, 1, -1);"/><span style="padding-left: 22px;"></span></label>
+            <label><input name="light" type="radio" onclick="setLightVector(1, 1, -1);"/><span style="padding-left: 22px;"></span></label>
           </div>
         </div>
 

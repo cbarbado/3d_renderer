@@ -22,11 +22,17 @@ class Graphics {
       this.buffer  = this.context.getImageData(0,0,width,height);
       this.zBuffer = new Float32Array(new ArrayBuffer(32 * width * height));
 
+      this.lightVector = new Element3D(0, 0, -1);
+
       setInterval(updateLoop,1000/refreshRate); // interval = 1000ms / refreshRate
    }
 
    updateCanvas() {
       this.context.putImageData(this.buffer, 0, 0);
+   }
+
+   setLightVector(p) {
+      this.lightVector = p;
    }
 
    clearCanvas()
@@ -163,7 +169,6 @@ class Element3D {
    }
 
    getDotProduct (v) {
-      // TODO: CHECK
       return ((this.x * v.x + this.y * v.y + this.z * v.z) / (this.getModule() * v.getModule()));
    }
 
@@ -221,7 +226,7 @@ class Geometry3D {
       let v1 = this.transformedVertices[face[0]].getSubtraction(this.transformedVertices[face[1]]); // first edge of this face
       let v2 = this.transformedVertices[face[2]].getSubtraction(this.transformedVertices[face[1]]); // second edge of this face
 
-      return (v1.getCrossProduct(v2)); // face normal vector
+      return (v1.getCrossProduct(v2));
    }
 
    checkBackFaceCulling(faceNormalVector, cameraVector) {
@@ -229,13 +234,7 @@ class Geometry3D {
    }
 
    calcFacelightening(faceNormalVector, lightVector) {
-      // TODO: SEPARATE LIGHT VECTOR FROM CULLING VECTOR (getFaceNormalVector + getBackFaceCullingFlag + calcFaceLightening)
       return faceNormalVector.getDotProduct(lightVector);
-
-      /* PREVIOUS
-      vCross.normalize(); // unity face normal vector
-      return -vCross.z; // simplification of normal and view vectors dot product (cos of the angle between normal and view (1, 1, -1) vectors)
-      */
    }
 
    getColorRGB() {
@@ -266,12 +265,12 @@ class Geometry3D {
             return;
          }
 
-         let cameraVector = new Element3D(0, 0, -1);
+         let cameraVector = new Element3D(0, 0, -1); // TODO: Move cameraVector to Graphics class
          let faceNormalVector = this.getFaceNormalVector(f);
 
          if(this.checkBackFaceCulling(faceNormalVector, cameraVector)) {
-            let lightVector = new Element3D(-1, 0, -1);
-            let faceLightening = this.calcFacelightening(faceNormalVector,lightVector);
+            // let lightVector = new Element3D(1, -1, -1); // TODO: Move lightVector to Graphics class
+            let faceLightening = this.calcFacelightening(faceNormalVector,graphics.lightVector);
 
             let faceColor = new Array();
             faceColor.r = Math.floor(rgbColor.r * faceLightening);
@@ -323,6 +322,10 @@ function toogleShading() {
 
 function toogleShapeResolution() {
    shapeResolution = shapeResolution === "low_poly" ? "high_poly" : "low_poly";
+}
+
+function setLightVector(x, y, z) {
+   graphics.setLightVector (new Element3D(x,y,z));
 }
 
 function setShape(g) {
