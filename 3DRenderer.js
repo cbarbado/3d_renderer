@@ -151,6 +151,10 @@ class Element3D {
       this.z = z;
    }
 
+   getAddition(p) {
+      return new Element3D(this.x + p.x, this.y + p.y, this.z + p.z);
+   }
+
    getSubtraction(p) {
       return new Element3D(this.x - p.x, this.y - p.y, this.z - p.z);
    }
@@ -185,13 +189,15 @@ class Geometry3D {
       this.faces               = gd.faces;
       this.color               = gd.color ? gd.color : "#969696";
       this.scale               = gd.scale ? {x: gd.scale[0], y: gd.scale[1], z: gd.scale[2]} : {x: 1, y: 1, z: 1};
-      this.transformRotate     = 0;
+      this.translate           = gd.translate ? {x: gd.translate[0], y: gd.translate[1], z: gd.translate[2]} : {x: 0, y: 0, z: 0};
+      this.rotate     = 0;
       this.transformedVertices = [];
    }
 
-   transformVertices(s = this.transformScale, r = this.transformRotate) {
+   transformVertices(t = this.translate, s = this.scale, r = this.rotate) {
       r = r * (Math.PI / 180); // azimuth angle
       s = (null == s) ? this.scale : s;
+      t = (null == t) ? this.translate : t;
       this.transformedVertices = [];
 
       const camera = new Element3D(0,0,1500);
@@ -217,7 +223,9 @@ class Geometry3D {
             p.z * cos_teta - p.y * sin_teta // FASTER p.y * -sin_teta + p.z * cos_teta;
          );
 
-         this.transformedVertices.push(p2.getSubtraction(camera));         
+         let p3 = p2.getAddition(t);
+
+         this.transformedVertices.push(p3.getSubtraction(camera));         
       });
    }
 
@@ -301,7 +309,7 @@ let angle = 0;
 function animate() { // TODO: pass function pointer as parameter to graphics init?
    if(shapeIndex == null) return;
 
-   shapes[shapeResolution][shapeIndex].transformVertices(null, angle);
+   shapes[shapeResolution][shapeIndex].transformVertices(null, null, angle);
    graphics.clearCanvas();
    graphics.clearZbuffer();
    shapes[shapeResolution][shapeIndex].render(graphics, flagShading);
