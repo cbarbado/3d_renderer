@@ -1,5 +1,5 @@
 // TODOS:
-// - add translation to objects + transfor matrix
+// - add transform matrix
 // - add ambient and difuse lighting
 // - add camera position
 // - add scenes with multiple objects
