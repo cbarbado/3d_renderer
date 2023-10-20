@@ -245,8 +245,8 @@ class Geometry3D {
    }
 
    getColorRGB() {
-      const tmp = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(this.color);
-      return {r: parseInt(tmp[1], 16), g: parseInt(tmp[2], 16), b: parseInt(tmp[3], 16)};
+      let rgb = parseInt(this.color.substring(1), 16);
+      return {r: (rgb >> 16) & 255, g: (rgb >> 8) & 255, b: rgb & 255};      
    }
 
    /* TODO: convert the data files from multiple edges polygons to tryangles meshes */
