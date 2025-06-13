@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dragon 3DS Test</title>
+    <script src="3DSLoader.js"></script>
+</head>
+<body>
+    <h1>Dragon 3DS File Test</h1>
+    <button onclick="testDragonLoad()">Test Dragon Loading</button>
+    <div id="output"></div>
+
+    <script>
+        async function testDragonLoad() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Loading dragon...';
+            
+            try {
+                const dragonData = await threeDSLoader.loadFile('Dragon 2.5_3ds.3ds');
+                output.innerHTML = `
+                    <h3>Dragon loaded successfully!</h3>
+                    <p>Vertices: ${dragonData.vertices.length}</p>
+                    <p>Faces: ${dragonData.faces.length}</p>
+                    <p>Color: ${dragonData.color}</p>
+                    <p>Scale: [${dragonData.scale.join(', ')}]</p>
+                    <h4>First few vertices:</h4>
+                    <pre>${JSON.stringify(dragonData.vertices.slice(0, 5), null, 2)}</pre>
+                    <h4>First few faces:</h4>
+                    <pre>${JSON.stringify(dragonData.faces.slice(0, 5), null, 2)}</pre>
+                `;
+            } catch (error) {
+                output.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Dragon loading error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

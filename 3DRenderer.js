@@ -4,7 +4,8 @@
 // - add camera position
 // - add scenes with multiple objects
 // - convert objects from vertices & faces to triangle meshes
-// - read .3ds file formats
+// ✓ read .3ds file formats
+// - extend the JSON geometry format to point to external 3DS files for vertices and faces
 
 class Graphics {
    constructor(divID, elementID, width, height, updateLoop, refreshRate = 50) {
@@ -237,7 +238,7 @@ class Geometry3D {
    }
 
    checkBackFaceCulling(faceNormalVector, cameraVector) {
-      return (faceNormalVector.getDotProduct(cameraVector) > 0 ? true : false);
+      return (faceNormalVector.getDotProduct(cameraVector) > 0);
    }
 
    calcFacelightening(faceNormalVector, lightVector) {
@@ -300,6 +301,9 @@ const shapes = { // TODO: Change from 2 shapes arrays to a single array of shape
    )),
 };
 
+// Dragon will be loaded separately and added to shapes
+let dragonGeometry = null;
+
 let shapeIndex      = null;
 let flagShading     = true;
 let shapeResolution = "high_poly";
@@ -309,10 +313,20 @@ let angle = 0;
 function animate() { // TODO: pass function pointer as parameter to graphics init?
    if(shapeIndex == null) return;
 
-   shapes[shapeResolution][shapeIndex].transformVertices(null, null, angle);
-   graphics.clearCanvas();
-   graphics.clearZbuffer();
-   shapes[shapeResolution][shapeIndex].render(graphics, flagShading);
+   let currentShape;
+   if (shapeIndex === 14 && dragonGeometry) {
+      // Dragon
+      currentShape = dragonGeometry;
+   } else {
+      currentShape = shapes[shapeResolution][shapeIndex];
+   }
+
+   if (currentShape) {
+      currentShape.transformVertices(null, null, angle);
+      graphics.clearCanvas();
+      graphics.clearZbuffer();
+      currentShape.render(graphics, flagShading);
+   }
 
    angle = (angle + 1) % 360;
 }
@@ -335,17 +349,60 @@ function setLightVector(x, y, z) {
 }
 
 function setShape(g) {
-   shapeIndex = g;   
+   shapeIndex = g;
    if (null === g) {
       graphics.clearCanvas();
+      return null;
    }
+
+   // Check if it's the dragon (index 14)
+   if (g === 14) {
+      return dragonGeometry;
+   }
+
    return shapes[shapeResolution][shapeIndex];
 }
 
 function setShapeColor(c) {
    if(null !== shapeIndex)
    {
-      shapes["low_poly"][shapeIndex].color  = c;
-      shapes["high_poly"][shapeIndex].color = c;
+      if (shapeIndex === 14 && dragonGeometry) {
+         // Dragon is at index 14
+         dragonGeometry.color = c;
+      } else {
+         shapes["low_poly"][shapeIndex].color  = c;
+         shapes["high_poly"][shapeIndex].color = c;
+      }
+   }
+}
+
+async function loadDragon() {
+   try {
+      console.log('Loading dragon model...');
+      const dragonData = await threeDSLoader.loadFile('3ds_shapes/Dragon.3ds');
+      dragonGeometry = new Geometry3D(dragonData);
+
+      // Add dragon to both high and low poly arrays
+      shapes.high_poly.push(dragonGeometry);
+      shapes.low_poly.push(dragonGeometry); // Same model for both resolutions
+
+      console.log('Dragon model loaded successfully!');
+      console.log(`Dragon has ${dragonData.vertices.length} vertices and ${dragonData.faces.length} faces`);
+
+      return true;
+   } catch (error) {
+      console.error('Failed to load dragon:', error);
+      alert('Failed to load dragon model: ' + error.message);
+      return false;
+   }
+}
+
+function setDragon() {
+   if (dragonGeometry) {
+      shapeIndex = 14; // Dragon will be at index 14
+      return dragonGeometry;
+   } else {
+      alert('Dragon model not loaded yet. Please wait...');
+      return null;
    }
 }

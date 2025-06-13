@@ -38,6 +38,7 @@
     <script type="text/javascript" src="low_poly_shapes/rocket.json"></script>
     <script type="text/javascript" src="low_poly_shapes/grid.json"></script>
 
+    <script type="text/javascript" src="3DSLoader.js"></script>
     <script type="text/javascript" src="3DRenderer.js"></script>
 
     <script type="text/javascript">
@@ -51,6 +52,14 @@
       function onChangeColor() {
         document.getElementById('colorpickerwrapper').style.backgroundColor = document.getElementById('colorpicker').value;
         setShapeColor(document.getElementById('colorpicker').value)
+      }
+
+      function onSelectDragon() {
+        if (dragonGeometry) {
+          onSelectShape(14); // Dragon is at index 14
+        } else {
+          alert('Dragon model is still loading. Please wait a moment and try again.');
+        }
       }
     </script>
 
@@ -78,9 +87,10 @@
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(9)">Toroid</button>  
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(10)">Lgbeads</button>  
           <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(11)">Mechpart</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(12)">Rocket</button>  
-          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(13)">Grid</button>  
-          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectShape(null)">Clear</button>  	
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(12)">Rocket</button>
+          <button type="button" class="waves-effect waves-light btn" onclick="onSelectShape(13)">Grid</button>
+          <button type="button" class="waves-effect waves-light btn orange darken-2" onclick="onSelectDragon()">Dragon</button>
+          <button type="button" class="waves-effect waves-light btn red accent-2" onclick="onSelectShape(null)">Clear</button>
         </div>
 
         <div class="canvas-area" id="canvasDiv">
@@ -133,7 +143,13 @@
           </div>                
         </footer>
       </div>
-      <script type="text/javascript"> $(document).ready(function() { initGraphics("canvasDiv", "canvas",600,600,50); });</script>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          initGraphics("canvasDiv", "canvas",600,600,50);
+          // Load dragon model in the background
+          loadDragon();
+        });
+      </script>
     </div>    
   </body>
 </html>
