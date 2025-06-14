@@ -10,8 +10,8 @@
 .canvas-area {
     grid-area: main;
     background-color: #404040;
-    width: 600px;
-    height: 600px;    
+    width: 640px;
+    height: 640px;    
 }
 .footer {
     grid-area: footer;
@@ -22,7 +22,7 @@
     margin: 10px 0px 10px;
     display: grid;
     justify-content: center;
-    grid-template-columns: 1fr 600px 1fr;
+    grid-template-columns: 1fr 640px 1fr;
     grid-template-areas:
         "header header header"
         "sidebar-1 main sidebar-2"

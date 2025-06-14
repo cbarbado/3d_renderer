@@ -1,12 +1,12 @@
 class ThreeDSLoader {
     constructor() {
         // 3DS file format chunk IDs
-        this.MAIN3DS = 0x4D4D;
-        this.EDIT3DS = 0x3D3D;
+        this.MAIN3DS     = 0x4D4D;
+        this.EDIT3DS     = 0x3D3D;
         this.EDIT_OBJECT = 0x4000;
         this.OBJ_TRIMESH = 0x4100;
         this.TRI_VERTEXL = 0x4110;
-        this.TRI_FACEL1 = 0x4120;
+        this.TRI_FACEL1  = 0x4120;
     }
 
     async loadFile(url) {
@@ -41,7 +41,7 @@ class ThreeDSLoader {
         
         // Parse chunks within main chunk
         while (offset < chunkLength) {
-            const subChunkId = dataView.getUint16(offset, true);
+            const subChunkId     = dataView.getUint16(offset, true);
             const subChunkLength = dataView.getUint32(offset + 2, true);
             
             if (subChunkId === this.EDIT3DS) {
@@ -52,13 +52,12 @@ class ThreeDSLoader {
             
             offset += subChunkLength;
         }
-        
-        // Return the first object found (assuming single object file)
-        if (objects.length > 0) {
-            return this.convertToGeometryFormat(objects[0]);
-        } else {
+
+        if (objects.length <= 0) {
             throw new Error('No 3D objects found in file');
         }
+
+        return this.convertToGeometryFormat(objects[0]);
     }
 
     parseEditorChunk(dataView, startOffset, endOffset) {
@@ -66,7 +65,7 @@ class ThreeDSLoader {
         const objects = [];
         
         while (offset < endOffset) {
-            const chunkId = dataView.getUint16(offset, true);
+            const chunkId     = dataView.getUint16(offset, true);
             const chunkLength = dataView.getUint32(offset + 2, true);
             
             if (chunkId === this.EDIT_OBJECT) {
@@ -102,12 +101,11 @@ class ThreeDSLoader {
         
         // Parse sub-chunks
         while (offset < endOffset) {
-            const chunkId = dataView.getUint16(offset, true);
+            const chunkId     = dataView.getUint16(offset, true);
             const chunkLength = dataView.getUint32(offset + 2, true);
             
             if (chunkId === this.OBJ_TRIMESH) {
-                // Parse triangular mesh
-                this.parseTriMeshChunk(dataView, offset + 6, offset + chunkLength, object);
+                this.parseTriMeshChunk(dataView, offset + 6, offset + chunkLength, object); // Parse triangular mesh
             }
             
             offset += chunkLength;
@@ -120,15 +118,13 @@ class ThreeDSLoader {
         let offset = startOffset;
         
         while (offset < endOffset) {
-            const chunkId = dataView.getUint16(offset, true);
+            const chunkId     = dataView.getUint16(offset, true);
             const chunkLength = dataView.getUint32(offset + 2, true);
             
             if (chunkId === this.TRI_VERTEXL) {
-                // Parse vertex list
-                this.parseVertexList(dataView, offset + 6, object);
+                this.parseVertexList(dataView, offset + 6, object); // Parse vertex list
             } else if (chunkId === this.TRI_FACEL1) {
-                // Parse face list
-                this.parseFaceList(dataView, offset + 6, object);
+                this.parseFaceList(dataView, offset + 6, object);   // Parse face list
             }
             
             offset += chunkLength;
@@ -140,11 +136,7 @@ class ThreeDSLoader {
         offset += 2;
         
         for (let i = 0; i < vertexCount; i++) {
-            const x = dataView.getFloat32(offset, true);
-            const y = dataView.getFloat32(offset + 4, true);
-            const z = dataView.getFloat32(offset + 8, true);
-            
-            object.vertices.push([x, y, z]);
+            object.vertices.push([dataView.getFloat32(offset, true), dataView.getFloat32(offset + 4, true), dataView.getFloat32(offset + 8, true)]);
             offset += 12;
         }
     }
@@ -154,12 +146,8 @@ class ThreeDSLoader {
         offset += 2;
         
         for (let i = 0; i < faceCount; i++) {
-            const a = dataView.getUint16(offset, true);
-            const b = dataView.getUint16(offset + 2, true);
-            const c = dataView.getUint16(offset + 4, true);
+            object.faces.push([dataView.getUint16(offset, true), dataView.getUint16(offset + 2, true), dataView.getUint16(offset + 4, true)]);
             dataView.getUint16(offset + 6, true); // Face info flags (skip)
-            
-            object.faces.push([a, b, c]);
             offset += 8;
         }
     }
@@ -170,7 +158,6 @@ class ThreeDSLoader {
             vertices: object.vertices,
             faces: object.faces,
             color: "#FF6B35", // Orange color for the dragon
-            // scale: [5.3, 5.3, 5.3], // Scale up the model 3x (0.1 * 3 = 0.3)
             scale: [10, 10, 10], // Scale up the model 3x (0.1 * 3 = 0.3)
             translate: [0, -80, 0]
         };

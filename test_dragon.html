@@ -15,13 +15,14 @@
             output.innerHTML = 'Loading dragon...';
             
             try {
-                const dragonData = await threeDSLoader.loadFile('Dragon 2.5_3ds.3ds');
+                const dragonData = await threeDSLoader.loadFile('3ds_shapes/Dragon.3ds');
                 output.innerHTML = `
                     <h3>Dragon loaded successfully!</h3>
                     <p>Vertices: ${dragonData.vertices.length}</p>
                     <p>Faces: ${dragonData.faces.length}</p>
                     <p>Color: ${dragonData.color}</p>
                     <p>Scale: [${dragonData.scale.join(', ')}]</p>
+                    <p>Translate: [${dragonData.translate.join(', ')}]</p>
                     <h4>First few vertices:</h4>
                     <pre>${JSON.stringify(dragonData.vertices.slice(0, 5), null, 2)}</pre>
                     <h4>First few faces:</h4>
