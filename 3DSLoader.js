@@ -157,12 +157,10 @@ class ThreeDSLoader {
         return {
             vertices: object.vertices,
             faces: object.faces,
-            color: "#FF6B35", // Orange color for the dragon
-            scale: [10, 10, 10], // Scale up the model 3x (0.1 * 3 = 0.3)
-            translate: [0, -80, 0]
         };
     }
 }
 
 // Global instance for easy access
 const threeDSLoader = new ThreeDSLoader();
+
