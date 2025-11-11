@@ -21,18 +21,39 @@ let flagShading     = true;
 let shapeResolution = "high_poly";
 let graphics = null;
 
+const profiler = new Profiler();
+let prevShapeIndex = null;
+
 let angle = 0;
 function animate() { // TODO: pass function pointer as parameter to graphics init?
-   if(shapeIndex == null) return;
+   if(shapeIndex == null) {
+      if (prevShapeIndex !== null) {
+         profiler.report();
+      }
+      prevShapeIndex = shapeIndex;
+      return;
+   }
+   prevShapeIndex = shapeIndex;
 
    let currentShape;
    currentShape = shapes[shapeResolution][shapeIndex];
 
    if (currentShape) {
+      profiler.start("transformVertices");
       currentShape.transformVertices(null, null, angle);
+      profiler.stop("transformVertices");
+
+      profiler.start("clearCanvas");
       graphics.clearCanvas();
+      profiler.stop("clearCanvas");
+
+      profiler.start("clearZbuffer");
       graphics.clearZbuffer();
+      profiler.stop("clearZbuffer");
+      
+      profiler.start("render");
       currentShape.render(graphics, flagShading);
+      profiler.stop("render");
    }
 
    angle = (angle + 1) % 360;
